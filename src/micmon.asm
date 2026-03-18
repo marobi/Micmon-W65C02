@@ -266,13 +266,19 @@ mem_loop:
 
     jsr dump_line
 
-    lda #8
-    jsr add_R2_A
+    clc
+    lda R2L
+    adc #8
+    sta R2L
+    lda R2H
+    adc #0
+    sta R2H
+    bcs mem_ok          ; wrapped past $FFFF, stop
 
     jsr cmp_R2_R1
     bcc mem_loop
     beq mem_loop
-
+		
 mem_ok:
     jsr copy_R2_MEM
     rts
@@ -334,14 +340,47 @@ write_error:
 ; Explicit register display on user request.
 ; ------------------------------------------------------------
 cmd_regs:
-;		jsr advance_lineptr
-;    jsr next_token
-;    bcc cmd_regs_ok
-;    jmp cmd_error
+show_registers:
+    lda #<reg_header
+    ldx #>reg_header
+    jsr print_str
 
-;cmd_regs_ok:
-    jmp show_registers
+print_reg_line:
+    lda #';'
+    jsr putchar
+    jsr print_space
 
+    lda reg_pch
+    ldx reg_pcl
+    jsr print_hex16
+    jsr print_space
+
+    lda reg_a
+    jsr print_hex8
+    jsr print_space
+
+    lda reg_x
+    jsr print_hex8
+    jsr print_space
+
+    lda reg_y
+    jsr print_hex8
+    jsr print_space
+
+    lda reg_sp
+    jsr print_hex8
+    jsr print_space
+
+;    lda reg_sr
+;    jsr print_hex8
+;    jsr print_space
+
+    lda #'%'
+		jsr putchar
+    lda reg_sr
+    jsr print_status_bits
+    jmp newline
+		
 ; ------------------------------------------------------------
 ; REGISTER EDIT COMMAND
 ; Editable line format:
@@ -492,49 +531,6 @@ dump_ascii_loop:
     iny
     cpy #8
     bne dump_ascii_loop
-    jmp newline
-		
-; ------------------------------------------------------------
-; REGISTER DISPLAY
-; Used only by monitor entry and the R command.
-; ------------------------------------------------------------
-show_registers:
-    lda #<reg_header
-    ldx #>reg_header
-    jsr print_str
-
-print_reg_line:
-    lda #';'
-    jsr putchar
-    jsr print_space
-
-    lda reg_pch
-    ldx reg_pcl
-    jsr print_hex16
-    jsr print_space
-
-    lda reg_a
-    jsr print_hex8
-    jsr print_space
-
-    lda reg_x
-    jsr print_hex8
-    jsr print_space
-
-    lda reg_y
-    jsr print_hex8
-    jsr print_space
-
-    lda reg_sp
-    jsr print_hex8
-    jsr print_space
-
-    lda reg_sr
-    jsr print_hex8
-    jsr print_space
-
-    lda reg_sr
-    jsr print_status_bits
     jmp newline
 
 ; ------------------------------------------------------------
@@ -741,6 +737,8 @@ bin_loop:
     cmp #'0'
     beq bin_zero
     cmp #'1'
+    beq bin_one
+    cmp #'-'				; special case for S-register
     beq bin_one
     jmp bin_done
 
@@ -1237,10 +1235,10 @@ cmd_addrs:
 		.word cmd_asm
 
 welcome_text:
-		.byte 12, "Micmon v0.9 (W65C02)", $0D, 0
+		.byte 12, "Micmon v0.9 (W65C02)", $0D, $0D, 0
 		
 reg_header:
-    .byte "   PC  A  X  Y  S  P  NV-BDIZC", $0D, 0
+    .byte "   PC  A  X  Y  S   NV-BDIZC", $0D, 0
 
 prompt_text:
 		.byte "OK", $0D, 0
