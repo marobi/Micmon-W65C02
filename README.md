@@ -94,7 +94,7 @@ M 0200 020F\
 
 Can be edited into:
 
-> 0200 A9 FF 8D 00 02
+\> 0200 A9 AA 8D 00 02
 
 and executed directly by the monitor.
 
@@ -102,20 +102,20 @@ and executed directly by the monitor.
 
 ## Parameter Formats
 
-All numeric parameters support multiple input formats.\
+All numeric parameters support multiple input formats.
 The format is determined strictly by prefix; otherwise hexadecimal is
 assumed.
 
 ### Supported Formats
 
--   Hex (default): 0200, \$0200\
--   Decimal: +123\
--   Binary: %10101010\
+-   Hex (default): 0200, \$0200
+-   Decimal: +123
+-   Binary: %10101010
 -   ASCII: 'A → \$41
 
 ### Rules
 
--   Hex is assumed if no prefix is present\
+-   Hex is assumed if no prefix is present
 -   Prefixes:
     -   \$ = hexadecimal (optional)
     -   \% = binary
@@ -128,8 +128,8 @@ assumed.
 
 ### Examples
 
-M \$C000\
-M %1100000000000000\
+M \$C000
+M %1100000000000000
 M +49152
 
 > 0200 'A \$42 %01000011
@@ -141,27 +141,27 @@ A 0302 LDA #\$41
 
 ## Architecture Notes
 
--   All decoding is table-driven\
--   Opcode metadata shared between assembler and disassembler\
--   Zero-page used from \$00C0--\$00DF\
+-   All decoding is table-driven
+-   Opcode metadata shared between assembler and disassembler
+-   Zero-page used from \$00C0--\$00DF
 -   Strict separation between parsing, decoding, and execution
 
 ------------------------------------------------------------------------
 
 ## Extensibility
 
--   Add commands via cmd_chars / cmd_addrs\
--   Fully table-driven dispatch (no switch-case)\
--   Reusable parsing helpers\
--   Shared assembler/disassembler tables\
+-   Add commands via cmd_chars / cmd_addrs
+-   Fully table-driven dispatch (no switch-case)
+-   Reusable parsing helpers
+-   Shared assembler/disassembler tables
 -   Extend via table updates only
 
 ------------------------------------------------------------------------
 
 ## Limitations
 
--   No multi-line assembly or labels\
--   No expression evaluator\
+-   No multi-line assembly or labels
+-   No expression evaluator
 -   Branch range limited to signed 8-bit
 
 ------------------------------------------------------------------------
