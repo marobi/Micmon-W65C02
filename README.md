@@ -43,13 +43,13 @@ capabilities.
 
 ## Command Summary
 
-H Help / command overview
-M addr Peek memory
-\> addr Poke memory (byte stream)
-R Show CPU registers
-; Modify CPU registers
-G \[addr\] Execute code at address
-D \[addr\] Disassemble
+H Help / command overview\
+M addr Peek memory\
+\> addr Poke memory (byte stream)\
+R Show CPU registers\
+; Modify CPU registers\
+G \[addr\] Execute code at address\
+D \[addr\] Disassemble\
 A \[addr\] Assemble single instruction at address
 
 ------------------------------------------------------------------------
@@ -89,7 +89,7 @@ Input is processed per line (CR-terminated).
 
 Example:
 
-M 0200 020F
+M 0200 020F\
 \> 0200 A9 01 8D 00 02 ...
 
 Can be edited into:
@@ -132,7 +132,7 @@ M \$C000
 M %1100000000000000
 M +49152
 
-> 0200 'A \$42 %01000011
+\> 0200 'A \$42 %01000011
 
 A 0300 LDA \#'A
 A 0302 LDA #\$41
