@@ -43,21 +43,21 @@ capabilities.
 
 ## Command Summary
 
-H Help / command overview\
-M addr Peek memory\
-\> addr Poke memory (byte stream)\
-R Show CPU registers\
-; Modify CPU registers\
-G \[addr\] Execute code at address\
-D \[addr\] Disassemble\
+H Help / command overview
+M addr Peek memory
+\> addr Poke memory (byte stream)
+R Show CPU registers
+; Modify CPU registers
+G \[addr\] Execute code at address
+D \[addr\] Disassemble
 A \[addr\] Assemble single instruction at address
 
 ------------------------------------------------------------------------
 
 ## Notes
 
--   If no address is provided, the current address pointer is used\
--   Commands are line-oriented and CR-terminated\
+-   If no address is provided, the current address pointer is used
+-   Commands are line-oriented and CR-terminated
 -   Where possible: output format is compatible with monitor input (round-trip)
 
 ------------------------------------------------------------------------
@@ -66,30 +66,30 @@ A \[addr\] Assemble single instruction at address
 
 ### RESET
 
--   Initializes CPU state and monitor environment\
+-   Initializes CPU state and monitor environment
 -   Enters monitor via BRK vector
 
 ### BRK Handler
 
--   Saves full CPU context (A, X, Y, P, SP, PC)\
+-   Saves full CPU context (A, X, Y, P, SP, PC)
 -   Transfers control to command interpreter
 
 ### Command Loop
 
 -   Line-oriented input\
--   Single-character command dispatch via table\
+-   Single-character command dispatch via table
 -   Commands operate directly on memory and CPU image
 
 ------------------------------------------------------------------------
 
 ## Interaction Model
 
-Micmon assumes the host terminal or VDU performs line editing.\
+Micmon assumes the host terminal or VDU performs line editing.
 Input is processed per line (CR-terminated).
 
 Example:
 
-M 0200 020F\
+M 0200 020F
 \> 0200 A9 01 8D 00 02 ...
 
 Can be edited into:
