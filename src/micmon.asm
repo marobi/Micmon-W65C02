@@ -44,7 +44,6 @@ asm_mode:   .res 1
 asm_opcode: .res 1
 mnem_len:   .res 1
 
-
 .segment "BSS"
 .org $0200							; nicer listing
 
@@ -266,14 +265,9 @@ mem_loop:
 
     jsr dump_line
 
-    clc
-    lda R2L
-    adc #8
-    sta R2L
-    lda R2H
-    adc #0
-    sta R2H
-    bcs mem_ok          ; wrapped past $FFFF, stop
+    lda #8
+    jsr add_R2_A
+    bcs mem_ok
 
     jsr cmp_R2_R1
     bcc mem_loop
@@ -613,15 +607,6 @@ print_address_T0:
     ldx T0L
     jsr print_hex16
     jmp print_space
-
-; ------------------------------------------------------------
-; PRINT ADDRESS IN T0 + two trailing spaces
-; Used by disassembly line prefix.
-; ------------------------------------------------------------
-print_address_T0_2spaces:
-    jsr print_address_T0
-    jmp print_space
-
 		
 ; ------------------------------------------------------------
 ; TOKENIZER
@@ -1037,18 +1022,53 @@ add_R0_A:
     clc
     adc R0L
     sta R0L
-    bcc add_r0_done
+    bcc add_r0_no_wrap
     inc R0H
-add_r0_done:
+    beq add_r0_wrap
+add_r0_no_wrap:
+    clc
+    rts
+add_r0_wrap:
+    sec
     rts
 
 add_R1_A:
     clc
     adc R1L
     sta R1L
-    bcc add_r1_done
+    bcc add_r1_no_wrap
     inc R1H
-add_r1_done:
+    beq add_r1_wrap
+add_r1_no_wrap:
+    clc
+    rts
+add_r1_wrap:
+    sec
+    rts
+
+; ------------------------------------------------------------
+; ADD_R2_A
+; Add unsigned byte in A to 16-bit register R2.
+;
+; Returns:
+;   C = 1 only if 16-bit wrap occurred ($FFFF -> $0000)
+;   C = 0 otherwise
+; ------------------------------------------------------------
+add_R2_A:
+    clc
+    adc R2L
+    sta R2L
+    bcc add_r2_no_wrap
+
+    inc R2H
+    beq add_r2_wrap
+
+add_r2_no_wrap:
+    clc
+    rts
+
+add_r2_wrap:
+    sec
     rts
 
 add_T1_T0:
@@ -1061,19 +1081,6 @@ add_T1_T0:
     sta T0H
     rts
 		
-; ------------------------------------------------------------
-; ADD_R2_A
-; Add unsigned byte in A to 16-bit register R2.
-; ------------------------------------------------------------
-add_R2_A:
-    clc
-    adc R2L
-    sta R2L
-    bcc add_r2_done
-    inc R2H
-add_r2_done:
-    rts
-
 cmp_R2_R1:
     lda R2H
     cmp R1H
@@ -1244,13 +1251,13 @@ prompt_text:
 		.byte "OK", $0D, 0
 		
 help_text:
-    .byte "M [start [end]] (peek)",$0D
-    .byte "> [start] byte[s] (poke)",$0D
-    .byte "R (peek regs)",$0D
-    .byte "; PC A X Y S P (poke regs)",$0D
-    .byte "G [start] (go)",$0D
-    .byte "D [start] (disasm)",$0D
-    .byte "A [start] stmt (asm)",$0D
+    .byte "M [s [e]] (peek)",$0D
+    .byte "> [s] bt[s] (poke)",$0D
+    .byte "R (peek)",$0D
+    .byte "; PC A X Y S P (poke)",$0D
+    .byte "G [s] (go)",$0D
+    .byte "D [s] (disasm)",$0D
+    .byte "A [s] stmt (asm)",$0D
     .byte "H (help)",$0D,0
 		
 ; ------------------------------------------------------------

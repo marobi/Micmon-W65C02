@@ -1,7 +1,7 @@
 Modules list:
 -------------
 micmon.o:
-    CODE              Offs=000000  Size=000FEB  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=000FDF  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=00002F  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -19,7 +19,7 @@ RODATA                000000  000000  000000  00001
 ZEROPAGE              0000C0  0000D7  000018  00001
 DATA                  000100  000100  000000  00001
 BSS                   000200  00022E  00002F  00001
-CODE                  00E000  00EFEA  000FEB  00001
+CODE                  00E000  00EFDE  000FDF  00001
 VECTORS               00FFFA  00FFFF  000006  00001
 
 

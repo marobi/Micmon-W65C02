@@ -22,20 +22,22 @@ cmd_disasm:
 
     jsr parse_word
     jsr copy_T0_R1
-		
+    jmp dis_prepare_range
+
+dis_default:
+    jsr copy_MEM_R0
+
+dis_one_param:
+    jsr copy_R0_R1
+    lda #12
+    sta parm_count
+    jmp dis_prepare_count
+
 dis_prepare_range:
     jsr next_token
     bcc dis_range_ok
     jmp cmd_error
 
-dis_default:
-    jsr copy_MEM_R0
-		
-dis_one_param:
-    jsr copy_R0_R1
-    lda #12
-    sta parm_count
-		
 dis_prepare_count:
     jsr next_token
     bcc dis_count_ok
@@ -48,6 +50,7 @@ dis_loop_count:
     jsr check_abort
     bcs dis_abort
     jsr disasm_line
+    bcs dis_done
     dec parm_count
     bne dis_loop_count
     jmp copy_R2_MEM
@@ -58,15 +61,23 @@ dis_range_ok:
 dis_loop_range:
     jsr check_abort
     bcs dis_abort
-    jsr disasm_line
+
     jsr cmp_R2_R1
-    bcc dis_loop_range
-    beq dis_loop_range
+    bcc dis_do_line
+    beq dis_do_line
+    jmp dis_done
+
+dis_do_line:
+    jsr disasm_line
+    bcs dis_done
+    jmp dis_loop_range
+
+dis_done:
     jmp copy_R2_MEM
 
 dis_abort:
     jmp cmd_error
-
+		
 ; ------------------------------------------------------------
 ; DISASSEMBLE ONE LINE
 ;
@@ -84,11 +95,7 @@ dis_abort:
 ;   advances R2 by instruction length
 ; ------------------------------------------------------------
 disasm_line:
-    lda R2L
-    sta T0L
-    lda R2H
-    sta T0H
-    jsr print_address_T0_2spaces
+    jsr print_disasm_address
 
     ldy #0
     lda (R2L),y
@@ -113,6 +120,12 @@ disasm_line:
     lda R3H
     jmp add_R2_A
 
+print_disasm_address:
+    lda R2H
+    ldx R2L
+    jsr print_hex16
+    jsr print_space
+    jmp print_space
 		
 ; ------------------------------------------------------------
 ; PRINT RAW BYTES FIELD
