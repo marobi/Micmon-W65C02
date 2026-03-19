@@ -119,8 +119,8 @@ assumed.
 -   Prefixes:
     -   \$ = hexadecimal (optional)
     -   \% = binary
-    -   -   = decimal
-    -   ' = ASCII single byte
+    -   \+ = decimal
+    -   \' = ASCII single byte
 -   Parsed result:
     -   T0 = value (byte or word)
     -   value_size \>= 1 indicates success
