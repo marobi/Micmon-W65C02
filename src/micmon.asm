@@ -145,7 +145,7 @@ brk_entry:
 
     tsx
     stx reg_sp
-    jmp monitor_entry
+;    jmp monitor_entry
 
 ; ------------------------------------------------------------
 ; MONITOR ENTRY
@@ -175,14 +175,15 @@ execute_line:
     jsr toupper
     sta (lineptr),y			; save uppercase
     jsr dispatch_command
-		
+		bcs exec_nopr
 exec_done:
 		jsr print_prompt
+		
+exec_nopr
     jmp monitor_loop
  
 ; ------------------------------------------------------------
 ; COMMAND DISPATCH
-; Table format: command byte, handler low, handler high.
 ; ------------------------------------------------------------
 dispatch_command:
     ldy #0
@@ -210,7 +211,9 @@ dispatch_found:
     jmp (jmpvec)
 
 dispatch_error:
-    jmp cmd_error
+    jsr cmd_error
+		sec
+		rts
 
 ; ------------------------------------------------------------
 ; MEMORY DUMP COMMAND
@@ -275,7 +278,8 @@ mem_loop:
 		
 mem_ok:
     jsr copy_R2_MEM
-    rts
+    clc
+		rts
 
 mem_abort:
     jmp cmd_error
@@ -283,7 +287,7 @@ mem_abort:
 ; ------------------------------------------------------------
 ; MEMORY EDIT COMMAND
 ; Syntax:
-;   : addr byte...
+;   > addr byte...
 ; Writes 1..8 bytes.
 ; Updates MEM to the next address after the last write.
 ; ------------------------------------------------------------
@@ -323,7 +327,8 @@ write_done:
     sta MEML
     lda R0H
     sta MEMH
-    rts
+    clc
+		rts
 
 write_error:
     jmp cmd_error
@@ -340,7 +345,7 @@ show_registers:
     jsr print_str
 
 print_reg_line:
-    lda #';'
+    lda #';'							; in sync with command table
     jsr putchar
     jsr print_space
 
@@ -373,12 +378,14 @@ print_reg_line:
 		jsr putchar
     lda reg_sr
     jsr print_status_bits
-    jmp newline
+    jsr newline
+		clc
+		rts
 		
 ; ------------------------------------------------------------
 ; REGISTER EDIT COMMAND
 ; Editable line format:
-;   . <PC> [A [X [Y [SP [SR]]]]]
+;   ; <PC> [A [X [Y [SP [SR]]]]]
 ;
 ; At least PC must be supplied.
 ; Missing trailing operands leave saved registers unchanged.
@@ -436,8 +443,9 @@ cmd_regedit:
 regedit_done:
 ;    jsr next_token
 ;    bcs regedit_error
-		jmp show_registers
-;    rts
+		jsr show_registers
+		clc
+    rts
 
 regedit_error:
     jmp cmd_error
@@ -485,20 +493,24 @@ go_now:
 cmd_help:
     lda #<help_text
     ldx #>help_text
-    jmp print_str
-
+    jsr print_str
+		clc
+		rts
+		
 ; ------------------------------------------------------------
 ; ERROR HANDLER
 ; ------------------------------------------------------------
 cmd_error:
-    jmp print_error
-
+    jsr print_error
+		sec
+		rts
+		
 ; ------------------------------------------------------------
 ; MEMORY DUMP FORMATTERS
 ; ------------------------------------------------------------
 ; show 8 memory locs @R2
 dump_line:
-    lda #'>' 
+    lda #'>'						; sync with command table 
     jsr putchar
 
     lda R2L
@@ -574,7 +586,7 @@ print_status_bits:
     asl tmp              ; V -> C
     jsr print_bit_c
 
-    lda #'-'
+    lda #'-'						 ; mmmhhhh
     jsr putchar
 
     asl tmp              ; skip bit 5
@@ -1242,7 +1254,7 @@ cmd_addrs:
 		.word cmd_asm
 
 welcome_text:
-		.byte 12, "Micmon v0.9 (W65C02)", $0D, $0D, 0
+		.byte 12, "Micmon v0.9b (W65C02)", $0D, $0D, 0
 		
 reg_header:
     .byte "   PC  A  X  Y  S   NV-BDIZC", $0D, 0
@@ -1253,8 +1265,8 @@ prompt_text:
 help_text:
     .byte "M [s [e]] (peek)",$0D
     .byte "> [s] bt[s] (poke)",$0D
-    .byte "R (peek)",$0D
-    .byte "; PC A X Y S P (poke)",$0D
+    .byte "R (peek regs)",$0D
+    .byte "; PC A X Y S P (poke regs)",$0D
     .byte "G [s] (go)",$0D
     .byte "D [s] (disasm)",$0D
     .byte "A [s] stmt (asm)",$0D

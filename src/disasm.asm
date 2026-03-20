@@ -53,7 +53,9 @@ dis_loop_count:
     bcs dis_done
     dec parm_count
     bne dis_loop_count
-    jmp copy_R2_MEM
+    jsr copy_R2_MEM
+		clc
+		rts
 
 dis_range_ok:
     jsr copy_R0_R2
@@ -73,7 +75,9 @@ dis_do_line:
     jmp dis_loop_range
 
 dis_done:
-    jmp copy_R2_MEM
+    jsr copy_R2_MEM
+		clc
+		rts
 
 dis_abort:
     jmp cmd_error
