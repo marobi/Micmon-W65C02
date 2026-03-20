@@ -56,8 +56,8 @@ A \[addr\] Assemble single instruction at address
 
 ## Notes
 
--   If no address is provided, the current address pointer is used\
--   Commands are line-oriented and CR-terminated\
+-   If no address is provided, the current address pointer is used
+-   Commands are line-oriented and CR-terminated
 -   Where possible: output format is compatible with monitor input (round-trip)
 
 ------------------------------------------------------------------------
@@ -66,25 +66,25 @@ A \[addr\] Assemble single instruction at address
 
 ### RESET
 
--   Initializes CPU state and monitor environment\
+-   Initializes CPU state and monitor environment
 -   Enters monitor via BRK vector
 
 ### BRK Handler
 
--   Saves full CPU context (A, X, Y, P, SP, PC)\
+-   Saves full CPU context (A, X, Y, P, SP, PC)
 -   Transfers control to command interpreter
 
 ### Command Loop
 
 -   Line-oriented input\
--   Single-character command dispatch via table\
+-   Single-character command dispatch via table
 -   Commands operate directly on memory and CPU image
 
 ------------------------------------------------------------------------
 
 ## Interaction Model
 
-Micmon assumes the host terminal or VDU performs line editing.\
+Micmon assumes the host terminal or VDU performs line editing.
 Input is processed per line (CR-terminated).
 
 Example:
@@ -94,7 +94,7 @@ M 0200 020F\
 
 Can be edited into:
 
-> 0200 A9 FF 8D 00 02
+\> 0200 A9 AA 8D 00 02
 
 and executed directly by the monitor.
 
@@ -102,25 +102,25 @@ and executed directly by the monitor.
 
 ## Parameter Formats
 
-All numeric parameters support multiple input formats.\
+All numeric parameters support multiple input formats.
 The format is determined strictly by prefix; otherwise hexadecimal is
 assumed.
 
 ### Supported Formats
 
--   Hex (default): 0200, \$0200\
--   Decimal: +123\
--   Binary: %10101010\
+-   Hex (default): 0200, \$0200
+-   Decimal: +123
+-   Binary: %10101010
 -   ASCII: 'A → \$41
 
 ### Rules
 
--   Hex is assumed if no prefix is present\
+-   Hex is assumed if no prefix is present
 -   Prefixes:
     -   \$ = hexadecimal (optional)
     -   \% = binary
-    -   -   = decimal
-    -   ' = ASCII single byte
+    -   \+ = decimal
+    -   \' = ASCII single byte
 -   Parsed result:
     -   T0 = value (byte or word)
     -   value_size \>= 1 indicates success
@@ -132,36 +132,36 @@ M \$C000\
 M %1100000000000000\
 M +49152
 
-> 0200 'A \$42 %01000011
+\> 0200 \'A \$42 %01000011
 
-A 0300 LDA \#'A
+A 0300 LDA \#'A\
 A 0302 LDA #\$41
 
 ------------------------------------------------------------------------
 
 ## Architecture Notes
 
--   All decoding is table-driven\
--   Opcode metadata shared between assembler and disassembler\
--   Zero-page used from \$00C0--\$00DF\
+-   All decoding is table-driven
+-   Opcode metadata shared between assembler and disassembler
+-   Zero-page used from \$00C0--\$00DF
 -   Strict separation between parsing, decoding, and execution
 
 ------------------------------------------------------------------------
 
 ## Extensibility
 
--   Add commands via cmd_chars / cmd_addrs\
--   Fully table-driven dispatch (no switch-case)\
--   Reusable parsing helpers\
--   Shared assembler/disassembler tables\
+-   Add commands via cmd_chars / cmd_addrs
+-   Fully table-driven dispatch (no switch-case)
+-   Reusable parsing helpers
+-   Shared assembler/disassembler tables
 -   Extend via table updates only
 
 ------------------------------------------------------------------------
 
 ## Limitations
 
--   No multi-line assembly or labels\
--   No expression evaluator\
+-   No multi-line assembly or labels
+-   No expression evaluator
 -   Branch range limited to signed 8-bit
 
 ------------------------------------------------------------------------
