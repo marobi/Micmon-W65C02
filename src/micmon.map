@@ -1,13 +1,13 @@
 Modules list:
 -------------
 micmon.o:
-    CODE              Offs=000000  Size=000FF9  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=000FE5  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=00002F  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
-    ZEROPAGE          Offs=000000  Size=000018  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=00001A  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
-    VECTORS           Offs=000000  Size=000006  Align=00001  Fill=0000
+    VECTORS           Offs=000000  Size=000000  Align=00001  Fill=0000
 
 
 Segment list:
@@ -16,23 +16,23 @@ Name                   Start     End    Size  Align
 ----------------------------------------------------
 NULL                  000000  000000  000000  00001
 RODATA                000000  000000  000000  00001
-ZEROPAGE              0000C0  0000D7  000018  00001
+ZEROPAGE              0000C0  0000D9  00001A  00001
 DATA                  000100  000100  000000  00001
 BSS                   000200  00022E  00002F  00001
-CODE                  00E000  00EFF8  000FF9  00001
-VECTORS               00FFFA  00FFFF  000006  00001
+CODE                  00E000  00EFE4  000FE5  00001
+VECTORS               00FFFA  00FFFA  000000  00001
 
 
 Exports list by name:
 ---------------------
-irq_entry                 00E014  LA    nmi_entry                 00E027  LA    
+irq_entry                 00E019  LA    nmi_entry                 00E02A  LA    
 reset                     00E000  LA    
 
 
 Exports list by value:
 ----------------------
-reset                     00E000  LA    irq_entry                 00E014  LA    
-nmi_entry                 00E027  LA    
+reset                     00E000  LA    irq_entry                 00E019  LA    
+nmi_entry                 00E02A  LA    
 
 
 Imports list:

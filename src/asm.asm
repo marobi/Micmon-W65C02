@@ -179,40 +179,11 @@ get_mnemonic_ptr_id:
 ;   AM_IND, AM_ZPREL, AM_AIX    -> 3
 ; ------------------------------------------------------------
 get_oplen_from_mode:
-    cmp #AM_IMP
-    beq gol_len1
-    cmp #AM_ACC
-    beq gol_len1
-    cmp #AM_ILL
-    beq gol_len1
-
-    cmp #AM_IMM
-    beq gol_len2
-    cmp #AM_ZP
-    beq gol_len2
-    cmp #AM_ZPX
-    beq gol_len2
-    cmp #AM_ZPY
-    beq gol_len2
-    cmp #AM_INDX
-    beq gol_len2
-    cmp #AM_INDY
-    beq gol_len2
-    cmp #AM_ZPIND
-    beq gol_len2
-    cmp #AM_REL
-    beq gol_len2
-
-    lda #3
-    rts
-
-gol_len2:
-    lda #2
-    rts
-
-gol_len1:
-    lda #1
-    rts
+    phx
+    tax
+    lda mode_len_table,x
+    plx
+		rts
 		
 ; ------------------------------------------------------------
 ; PARSE ASSEMBLER OPERAND
@@ -565,7 +536,7 @@ cro_ok:
 emit_instruction:
     lda asm_mode
     jsr get_oplen_from_mode
-    sta tmp
+    sta R3H
 
     ; for relative forms, validate offset before storing opcode
     lda asm_mode
@@ -592,7 +563,7 @@ ei_store:
     lda asm_opcode
     sta (R0L),y
 
-    lda tmp
+    lda R3H
     cmp #1
     beq ei_finish
 
@@ -606,7 +577,7 @@ ei_store:
     lda T0L
     sta (R0L),y
 
-    lda tmp
+    lda R3H
     cmp #2
     beq ei_finish
 
@@ -630,7 +601,7 @@ ei_zprel:
     sta (R0L),y
 
 ei_finish:
-    lda tmp
+    lda R3H
     jsr add_R0_A
     lda R0L
     sta MEML

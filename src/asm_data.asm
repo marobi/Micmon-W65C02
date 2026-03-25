@@ -34,7 +34,7 @@ AM_ILL   = 16     ; undefined / reserved
 ; Unique mnemonic strings
 ; ------------------------------------------------------------
 
-mn_ILL:  .byte "???",0
+mn_ILL:  .byte ".DB",0
 
 mn_ADC:  .byte "ADC",0
 mn_AND:  .byte "AND",0
@@ -138,7 +138,6 @@ mn_BBS4: .byte "BBS4",0
 mn_BBS5: .byte "BBS5",0
 mn_BBS6: .byte "BBS6",0
 mn_BBS7: .byte "BBS7",0
-
 
 ; ------------------------------------------------------------
 ; Addressing mode table
@@ -271,6 +270,28 @@ MN_BBS5  = 96
 MN_BBS6  = 97
 MN_BBS7  = 98
 
+;
+; instruction length lookup table
+;
+mode_len_table:
+    .byte 1  ; AM_IMP
+    .byte 1  ; AM_ACC
+    .byte 2  ; AM_IMM
+    .byte 2  ; AM_ZP
+    .byte 2  ; AM_ZPX
+    .byte 2  ; AM_ZPY
+    .byte 3  ; AM_ABS
+    .byte 3  ; AM_ABSX
+    .byte 3  ; AM_ABSY
+    .byte 3  ; AM_IND
+    .byte 2  ; AM_INDX
+    .byte 2  ; AM_INDY
+    .byte 2  ; AM_ZPIND
+    .byte 2  ; AM_REL
+    .byte 3  ; AM_ZPREL
+    .byte 3  ; AM_AIX
+    .byte 1  ; AM_ILL
+		
 ; ------------------------------------------------------------
 ; Unique mnemonic pointer table
 ; Indexed by mnemonic ID.

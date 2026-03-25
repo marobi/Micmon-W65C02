@@ -11,6 +11,10 @@
 .segment "ZEROPAGE"
 .org $00C0								; nicer listing
 
+; IRQ hander vector
+irq_vecL:   .res 1
+irq_vecH:   .res 1
+
 ; parser / dispatcher pointers
 lineptr:    .res 2
 jmpvec:     .res 2
@@ -73,52 +77,55 @@ reset:
     cld
     ldx #$FF
     txs
-    jsr monitor_init
-    brk
 
-monitor_init:
     stz MEML
     stz MEMH
-		lda #<welcome_text
-    ldx #>welcome_text
-    jmp print_str
+		lda #<irq_restore
+    sta irq_vecL
+		lda #>irq_restore
+    sta irq_vecH
 
+    lda #<welcome_text
+    ldx #>welcome_text
+    jsr print_str
+
+		brk									; enter monitor
+		
 ; ------------------------------------------------------------
 ; IRQ / BRK ENTRY
-; The common IRQ vector saves A/X/Y, then distinguishes IRQ
-; from BRK by testing bit 4 of the stacked status byte.
-; IRQ returns immediately. BRK enters the monitor.
+; Shared entry for hardware IRQ and BRK.
+;
+; BRK enters the monitor.
+; IRQ dispatches through irq_vec
 ; ------------------------------------------------------------
 		.export irq_entry
 irq_entry:
     pha
-    txa
-    pha
-    tya
-    pha
+    phx
+    phy
 
     tsx
-    lda $0104,x
+    lda $0104,x                 ; stacked SR after PHA/PHX/PHY
     and #$10
     bne brk_entry
 
+irq_dispatch:
+    jmp (irq_vecL)
+
 irq_restore:
+    ply
+    plx
     pla
-    tay
-    pla
-    tax
-    pla
-    rti
+;    rti
 
 		.export nmi_entry
 nmi_entry:
     rti
-
+		
 ; ------------------------------------------------------------
 ; BRK ENTRY
-; Save the CPU state into monitor RAM.
-; BRK pushes PC+2, so the saved PC is adjusted back to the
-; BRK opcode address for display and resume semantics.
+; Save CPU state into monitor RAM and discard interrupt frame.
+; BRK pushes PC+2, so saved PC is corrected back to BRK opcode.
 ; ------------------------------------------------------------
 brk_entry:
     pla
@@ -134,18 +141,17 @@ brk_entry:
     pla
     sta reg_pch
 
+    tsx
+    stx reg_sp
+
     cld
-    sec						; correct PC by -2
+    sec
     lda reg_pcl
     sbc #2
     sta reg_pcl
     lda reg_pch
     sbc #0
     sta reg_pch
-
-    tsx
-    stx reg_sp
-;    jmp monitor_entry
 
 ; ------------------------------------------------------------
 ; MONITOR ENTRY
@@ -155,6 +161,7 @@ brk_entry:
 monitor_entry:
 		cli
     jsr show_registers	; show regs and fall through
+		jsr print_prompt
 
 ; ------------------------------------------------------------
 ; MAIN MONITOR LOOP
@@ -211,10 +218,14 @@ dispatch_found:
     jmp (jmpvec)
 
 dispatch_error:
-    jsr cmd_error
-		sec
-		rts
+    jmp cmd_error
 
+; ------------------------------------------------------------
+; RESET COMMAND
+; ------------------------------------------------------------
+cmd_reset:
+		jmp reset
+		
 ; ------------------------------------------------------------
 ; MEMORY DUMP COMMAND
 ; Syntax:
@@ -242,14 +253,9 @@ cmd_mem:
     jsr copy_T0_R1
     jmp mem_prepare
 
-mem_one_param:
-    jsr copy_R0_R1
-    lda #95
-    jsr add_R1_A
-    jmp mem_prepare
-
 mem_default:
     jsr copy_MEM_R0
+mem_one_param:
     jsr copy_R0_R1
     lda #95
     jsr add_R1_A
@@ -320,9 +326,6 @@ write_done:
     lda parm_count
     beq write_error				; no locations given
 
-;    jsr next_token
-;    bcs write_error
-
     lda R0L								; advance mem ptr
     sta MEML
     lda R0H
@@ -369,10 +372,6 @@ print_reg_line:
     lda reg_sp
     jsr print_hex8
     jsr print_space
-
-;    lda reg_sr
-;    jsr print_hex8
-;    jsr print_space
 
     lda #'%'
 		jsr putchar
@@ -438,18 +437,14 @@ cmd_regedit:
     sta reg_sr
 
     jsr next_token
-;    bcc regedit_done
 
 regedit_done:
-;    jsr next_token
-;    bcs regedit_error
 		jsr show_registers
 		clc
     rts
 
 regedit_error:
     jmp cmd_error
-
 
 ; ------------------------------------------------------------
 ; GO COMMAND
@@ -549,6 +544,7 @@ dump_ascii_loop:
 ; Uses T0 as the temporary string pointer.
 ; ------------------------------------------------------------
 print_str:
+    phy
     sta T0L
     stx T0H
     ldy #0
@@ -563,7 +559,8 @@ print_str_loop:
     jmp print_str_loop
 
 print_str_done:
-    rts
+    ply
+		rts
 
 ; ------------------------------------------------------------
 ; PRINT_STATUS_BITS
@@ -694,12 +691,6 @@ parse_byte_ok:
 
 parse_word:
     jmp parse_param
-;    lda value_size
-;    cmp #2
-;    bne parse_word_ok
-;    jmp cmd_error
-;parse_word_ok:
-;    rts
 
 ; ------------------------------------------------------------
 ; ASCII PARSER
@@ -1112,8 +1103,6 @@ print_hex8:
     jsr print_hex_digit
     pla
     and #$0F
-;    jsr print_hex_digit
-;    rts
 
 print_hex_digit:
     cmp #10
@@ -1161,8 +1150,6 @@ print_space:
 
 newline:
     lda #$0D
-;    jsr putchar
-;    lda #$0A
     jmp putchar
 
 print_prompt:
@@ -1241,7 +1228,7 @@ print_error:
 ;
 ; ------------------------------------------------------------
 cmd_chars:
-    .byte 'H', 'M', '>', 'R', ';', 'G', 'D', 'A', 0
+    .byte 'H', 'M', '>', 'R', ';', 'G', 'D', 'A', 'X', 0
 
 cmd_addrs:
 		.word cmd_help
@@ -1252,9 +1239,10 @@ cmd_addrs:
     .word cmd_go
 		.word cmd_disasm
 		.word cmd_asm
+		.word cmd_reset
 
 welcome_text:
-		.byte 12, "Micmon v0.9b (W65C02)", $0D, $0D, 0
+		.byte 12, "Micmon v0.9c (W65C02)", $0D, $0D, 0
 		
 reg_header:
     .byte "   PC  A  X  Y  S   NV-BDIZC", $0D, 0
@@ -1263,20 +1251,21 @@ prompt_text:
 		.byte "OK", $0D, 0
 		
 help_text:
-    .byte "M [s [e]] (peek)",$0D
-    .byte "> [s] bt[s] (poke)",$0D
-    .byte "R (peek regs)",$0D
-    .byte "; PC A X Y S P (poke regs)",$0D
-    .byte "G [s] (go)",$0D
-    .byte "D [s] (disasm)",$0D
-    .byte "A [s] stmt (asm)",$0D
-    .byte "H (help)",$0D,0
+    .byte "M [s [e]]  (peek)",$0D
+    .byte "> [s] bt[s]  (poke)",$0D
+    .byte "R  (peek regs)",$0D
+    .byte "; PC A X Y S P  (poke regs)",$0D
+    .byte "G [s]  (go)",$0D
+    .byte "D [s]  (disasm)",$0D
+    .byte "A [s] stmt  (asm)",$0D
+		.byte "X  (reset)", $0D
+    .byte "H  (help)",$0D,0
 		
 ; ------------------------------------------------------------
 ;
 ; ------------------------------------------------------------
 .segment "VECTORS"
 
-    .word nmi_entry
-    .word reset
-    .word irq_entry
+;    .word nmi_entry
+;    .word reset
+;    .word irq_entry

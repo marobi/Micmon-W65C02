@@ -204,6 +204,7 @@ fmt_imp:
     rts
 
 fmt_acc:
+    jsr print_space
     lda #'A'
     jmp putchar
 
@@ -217,6 +218,8 @@ fmt_imm:
     jmp print_hex8
 
 fmt_zp:
+    jsr print_space
+fmt_zp2:
     lda #'$'
     jsr putchar
     ldy #1
@@ -238,6 +241,8 @@ fmt_zpy:
     jmp putchar
 
 fmt_abs:
+    jsr print_space
+fmt_abs2:
     lda #'$'
     jsr putchar
     ldy #1
@@ -264,14 +269,14 @@ fmt_absy:
 fmt_ind:
     lda #'('
     jsr putchar
-    jsr fmt_abs
+    jsr fmt_abs2
     lda #')'
     jmp putchar
 
 fmt_indx:
     lda #'('
     jsr putchar
-    jsr fmt_zp
+    jsr fmt_zp2
     lda #','
     jsr putchar
     lda #'X'
@@ -282,7 +287,7 @@ fmt_indx:
 fmt_indy:
     lda #'('
     jsr putchar
-    jsr fmt_zp
+    jsr fmt_zp2
     lda #')'
     jsr putchar
     lda #','
@@ -293,7 +298,7 @@ fmt_indy:
 fmt_zpind:
     lda #'('
     jsr putchar
-    jsr fmt_zp
+    jsr fmt_zp2
     lda #')'
     jmp putchar
 
@@ -329,13 +334,14 @@ rel_neg:
 
 rel_print:
     pha
+    jsr print_space
     lda #'$'
     jsr putchar
     pla
     jmp print_hex16
 
 fmt_zprel:
-    jsr fmt_zp
+    jsr fmt_zp2
     lda #','
     jsr putchar
 
@@ -378,7 +384,7 @@ zrel_print:
 fmt_aix:
     lda #'('
     jsr putchar
-    jsr fmt_abs
+    jsr fmt_abs2
     lda #','
     jsr putchar
     lda #'X'
@@ -387,22 +393,13 @@ fmt_aix:
     jmp putchar
 
 fmt_ill:
-    lda #'.'
-    jsr putchar
-    lda #'b'
-    jsr putchar
-    lda #'y'
-    jsr putchar
-    lda #'t'
-    jsr putchar
-    lda #'e'
-    jsr putchar
     jsr print_space
     lda #'$'
     jsr putchar
-    lda T0L
+    ldy #0
+    lda (R2L),y
     jmp print_hex8
-
+		
 operand_vecs:
     .word fmt_imp
     .word fmt_acc
