@@ -1,15 +1,15 @@
 ; ---------------------------------------------------------------------------
 ; MICMON – Minimal Interactive Command Monitor for the W65C02
 ; (c) 2026 Rien Matthijsse
-
+; ---------------------------------------------------------------------------
 .include "readme.asm"
 
-.setcpu "65C02"
+	.setcpu "65C02"
 
-.include "../bios_mmu/bios.h"
+.include "../bios/bios.h"
 
-.segment "ZEROPAGE"
-.org $00C0								; nicer listing
+	.segment "ZEROPAGE"
+	.org $00C0								; nicer listing
 
 ; IRQ hander vector
 irq_vecL:   .res 1
@@ -48,8 +48,8 @@ asm_mode:   .res 1
 asm_opcode: .res 1
 mnem_len:   .res 1
 
-.segment "BSS"
-.org $0200							; nicer listing
+	.segment "BSS"
+	.org $0200							; nicer listing
 
 ; input buffer
 linebuf:    .res 40
@@ -63,33 +63,33 @@ reg_x:      .res 1
 reg_y:      .res 1
 reg_sp:     .res 1
 
-.segment "CODE"
-.org $E000							; nicer listing
+	.segment "CODE"
+	.org $E000				; nicer listing
 
 ; ------------------------------------------------------------
 ; RESET
 ; Basic CPU setup, monitor state initialization, then enter
 ; the monitor through BRK so startup uses the normal entry path.
 ; ------------------------------------------------------------
-		.export reset
+	.export reset
 reset:
-    sei
+    sei						; disable interrupts
     cld
     ldx #$FF
-    txs
+    txs						; init stack
 
     stz MEML
     stz MEMH
-		lda #<irq_restore
+	lda #<context_switch	; set interrupt vector
     sta irq_vecL
-		lda #>irq_restore
+	lda #>context_switch
     sta irq_vecH
 
-    lda #<welcome_text
+    lda #<welcome_text		; say hello
     ldx #>welcome_text
     jsr print_str
 
-		brk									; enter monitor
+	brk						; enter monitor
 		
 ; ------------------------------------------------------------
 ; IRQ / BRK ENTRY
@@ -98,37 +98,66 @@ reset:
 ; BRK enters the monitor.
 ; IRQ dispatches through irq_vec
 ; ------------------------------------------------------------
-		.export irq_entry
+	.export irq_entry
 irq_entry:
-    pha
+    pha						; save rest of context
     phx
     phy
 
     tsx
-    lda $0104,x                 ; stacked SR after PHA/PHX/PHY
+	stx $0100				; save SP
+    lda $0104,x             ; stacked SR after PHA/PHX/PHY
     and #$10
-    bne brk_entry
+    bne brk_entry			; BREAK
 
-irq_dispatch:
+irq_dispatch:				; IRQ
     jmp (irq_vecL)
 
-irq_restore:
-    ply
+; ------------------------------------------------------------
+; expects the full context to be saved on stack
+; micmon must be shared between all contexts and loaded last
+;
+context_switch:				; for now default irq vector
+	lda BIOS_SYNC_PORT
+	beq context_switch		; wait for prev release, should not happen
+							; now 1
+	stz BIOS_SYNC_PORT		; arm
+							; now 0
+wait_ack:					; rp2350 will perform context switch
+	lda BIOS_SYNC_PORT
+	beq wait_ack			; wait for completion
+							; now 1
+	lda BIOS_STAT_PORT		; what to do?
+	cmp #$01				; when 1
+	beq irq_restore			; restore context
+	jmp ($FFFC)				; else exec reset
+							
+irq_restore:				; context switched
+	ldx $0100
+	txs						; restore SP
+    ply						; restore context
     plx
     pla
-;    rti
+    rti						; and continue
 
-		.export nmi_entry
+	.export nmi_entry
 nmi_entry:
-    rti
-		
+    rti						; stub
+
+print_context:
+    tsx
+
+
+switch_txt:
+	.byte $0D, "SWITCHED:", $0D, 0
+	
 ; ------------------------------------------------------------
 ; BRK ENTRY
 ; Save CPU state into monitor RAM and discard interrupt frame.
 ; BRK pushes PC+2, so saved PC is corrected back to BRK opcode.
 ; ------------------------------------------------------------
 brk_entry:
-    pla
+    pla						; save context
     sta reg_y
     pla
     sta reg_x
@@ -145,7 +174,7 @@ brk_entry:
     stx reg_sp
 
     cld
-    sec
+    sec						; correct PC =-2
     lda reg_pcl
     sbc #2
     sta reg_pcl
@@ -159,9 +188,9 @@ brk_entry:
 ; the command loop.
 ; ------------------------------------------------------------
 monitor_entry:
-		cli
+	cli					; enable interrupts
     jsr show_registers	; show regs and fall through
-		jsr print_prompt
+	jsr print_prompt
 
 ; ------------------------------------------------------------
 ; MAIN MONITOR LOOP
@@ -182,11 +211,11 @@ execute_line:
     jsr toupper
     sta (lineptr),y			; save uppercase
     jsr dispatch_command
-		bcs exec_nopr
+	bcs exec_nopr
 exec_done:
-		jsr print_prompt
+	jsr print_prompt
 		
-exec_nopr
+exec_nopr:
     jmp monitor_loop
  
 ; ------------------------------------------------------------
@@ -238,7 +267,7 @@ cmd_reset:
 ; MEM is updated to the next address after the dump.
 ; ------------------------------------------------------------
 cmd_mem:
-		jsr advance_lineptr
+	jsr advance_lineptr
 		
     jsr next_token
     bcc mem_default
@@ -285,7 +314,7 @@ mem_loop:
 mem_ok:
     jsr copy_R2_MEM
     clc
-		rts
+	rts
 
 mem_abort:
     jmp cmd_error
@@ -298,7 +327,7 @@ mem_abort:
 ; Updates MEM to the next address after the last write.
 ; ------------------------------------------------------------
 cmd_memedit:
-		jsr advance_lineptr
+	jsr advance_lineptr
     jsr parse_word
     jsr copy_T0_R0				; init ptr
 
@@ -331,7 +360,7 @@ write_done:
     lda R0H
     sta MEMH
     clc
-		rts
+	rts
 
 write_error:
     jmp cmd_error
@@ -378,8 +407,8 @@ print_reg_line:
     lda reg_sr
     jsr print_status_bits
     jsr newline
-		clc
-		rts
+	clc
+	rts
 		
 ; ------------------------------------------------------------
 ; REGISTER EDIT COMMAND
@@ -390,7 +419,7 @@ print_reg_line:
 ; Missing trailing operands leave saved registers unchanged.
 ; ------------------------------------------------------------
 cmd_regedit:
-		jsr advance_lineptr
+	jsr advance_lineptr
 
     jsr next_token
     bcc regedit_error
@@ -439,13 +468,13 @@ cmd_regedit:
     jsr next_token
 
 regedit_done:
-		jsr show_registers
-		clc
+	jsr show_registers
+	clc
     rts
 
 regedit_error:
     jmp cmd_error
-
+	
 ; ------------------------------------------------------------
 ; GO COMMAND
 ; Syntax:
@@ -454,7 +483,7 @@ regedit_error:
 ; Restores the saved CPU image and resumes execution with RTI.
 ; ------------------------------------------------------------
 cmd_go:
-		jsr advance_lineptr
+	jsr advance_lineptr
     jsr next_token
     bcc go_now
 
@@ -489,16 +518,16 @@ cmd_help:
     lda #<help_text
     ldx #>help_text
     jsr print_str
-		clc
-		rts
+	clc
+	rts
 		
 ; ------------------------------------------------------------
 ; ERROR HANDLER
 ; ------------------------------------------------------------
 cmd_error:
     jsr print_error
-		sec
-		rts
+	sec
+	rts
 		
 ; ------------------------------------------------------------
 ; MEMORY DUMP FORMATTERS
@@ -507,6 +536,7 @@ cmd_error:
 dump_line:
     lda #'>'						; sync with command table 
     jsr putchar
+    jsr print_space
 
     lda R2L
     sta T0L
@@ -560,7 +590,7 @@ print_str_loop:
 
 print_str_done:
     ply
-		rts
+	rts
 
 ; ------------------------------------------------------------
 ; PRINT_STATUS_BITS
@@ -572,7 +602,7 @@ print_str_done:
 ;   A = status byte
 ;
 ; Clobbers
-;   A,X
+;   A, X
 ; ------------------------------------------------------------
 print_status_bits:
     sta tmp
@@ -751,13 +781,12 @@ bin_one:
 
 bin_done:
     lda tmp
-    beq bin_error2
+    beq bin_error
     lda #1
     sta value_size
     rts
 
 bin_error:
-bin_error2:
     jmp cmd_error
 
 ; ------------------------------------------------------------
@@ -1158,29 +1187,6 @@ print_prompt:
     jmp print_str
 		
 ; ------------------------------------------------------------
-; I/O
-; ------------------------------------------------------------
-getchar
-		jmp BIOS_INCHAR
-		
-putchar:
-    jmp BIOS_OUTCHAR
-
-; ------------------------------------------------------------
-; CHECK_ABORT
-; Test if the user pressed ^C.
-;
-; Returns
-;   C = 1  abort requested
-;   C = 0  continue
-;
-; Wrapper around BIOS_STPKEY so the monitor depends only on
-; this primitive instead of calling the BIOS everywhere.
-; ------------------------------------------------------------
-check_abort:
-    jmp BIOS_STPKEY
-				
-; ------------------------------------------------------------
 ; GETLINE
 ; Read a line from input into linebuf.
 ;
@@ -1213,10 +1219,33 @@ getline_done:
     rts
 		
 print_error:
-		lda #'?'
-		jsr putchar
-		jmp newline
+	lda #'?'
+	jsr putchar
+	jmp newline
 
+; ------------------------------------------------------------
+; I/O
+; ------------------------------------------------------------
+getchar:
+	jmp BIOS_INCHAR
+		
+putchar:
+    jmp BIOS_OUTCHAR
+
+; ------------------------------------------------------------
+; CHECK_ABORT
+; Test if the user pressed ^C.
+;
+; Returns
+;   C = 1  abort requested
+;   C = 0  continue
+;
+; Wrapper around BIOS_STPKEY so the monitor depends only on
+; this primitive instead of calling the BIOS everywhere.
+; ------------------------------------------------------------
+check_abort:
+    jmp BIOS_STPKEY
+				
 ; command implementations
 .include "disasm.asm"
 
@@ -1231,40 +1260,40 @@ cmd_chars:
     .byte 'H', 'M', '>', 'R', ';', 'G', 'D', 'A', 'X', 0
 
 cmd_addrs:
-		.word cmd_help
+	.word cmd_help
     .word cmd_mem
     .word cmd_memedit
     .word cmd_regs
     .word cmd_regedit
     .word cmd_go
-		.word cmd_disasm
-		.word cmd_asm
-		.word cmd_reset
+	.word cmd_disasm
+	.word cmd_asm
+	.word cmd_reset
 
 welcome_text:
-		.byte 12, "Micmon v0.9c (W65C02)", $0D, $0D, 0
+	.byte 12, "Micmon v0.9e", $0D, $0D, 0
 		
 reg_header:
     .byte "   PC  A  X  Y  S   NV-BDIZC", $0D, 0
 
 prompt_text:
-		.byte "OK", $0D, 0
+	.byte "OK", $0D, 0
 		
 help_text:
-    .byte "M [s [e]]  (peek)",$0D
-    .byte "> [s] bt[s]  (poke)",$0D
-    .byte "R  (peek regs)",$0D
-    .byte "; PC A X Y S P  (poke regs)",$0D
-    .byte "G [s]  (go)",$0D
-    .byte "D [s]  (disasm)",$0D
-    .byte "A [s] stmt  (asm)",$0D
-		.byte "X  (reset)", $0D
-    .byte "H  (help)",$0D,0
+    .byte "M [s [e]]",$0D
+    .byte "> [s] bt[s]",$0D
+    .byte "R",$0D
+    .byte "; PC A X Y S P",$0D
+    .byte "G [s]",$0D
+    .byte "D [s]",$0D
+    .byte "A [s] stmt",$0D
+	.byte "X", $0D
+    .byte "H",$0D,0
 		
 ; ------------------------------------------------------------
 ;
 ; ------------------------------------------------------------
-.segment "VECTORS"
+	.segment "VECTORS"
 
 ;    .word nmi_entry
 ;    .word reset

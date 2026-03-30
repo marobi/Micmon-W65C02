@@ -46,8 +46,8 @@ $(ROM): $(BIN)
 $(BIN): $(OBJ) $(CFG)
 	$(LD) -C $(CFG) -vm -m $(MAP) -Ln $(LBL) -o $@ $<
 
-$(OBJ): $(SRC) micmon.asm readme.asm disasm.asm asm.asm asm_data.asm ../bios_mmu/bios.h
-	$(AS) --cpu W65C02 --feature labels_without_colons -g -l $(LST) -o $@ $<
+$(OBJ): $(SRC) micmon.asm readme.asm disasm.asm asm.asm asm_data.asm ../bios/bios.h
+	$(AS) --cpu W65C02 -g -l $(LST) -o $@ $<
 
 # -------------------------------------------------
 # Absolute listing (generated from ROM)
