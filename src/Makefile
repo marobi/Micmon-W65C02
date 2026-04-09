@@ -21,7 +21,7 @@ ROM         := $(TARGET).rom
 MAP         := $(TARGET).map
 LBL         := $(TARGET).lbl
 LST         := $(TARGET).LST
-TXT					:= $(TARGET).txt
+TXT			:= $(TARGET).txt
 CFG         := neo6502.cfg
 
 BASE_DIR := /cygdrive/c/Users/rien/OneDrive/source/repos

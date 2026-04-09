@@ -48,6 +48,9 @@ asm_mode:   .res 1
 asm_opcode: .res 1
 mnem_len:   .res 1
 
+; context
+save_sp:	.res 1
+
 	.segment "BSS"
 	.org $0200							; nicer listing
 
@@ -64,7 +67,7 @@ reg_y:      .res 1
 reg_sp:     .res 1
 
 	.segment "CODE"
-	.org $E000				; nicer listing
+	.org $B000				; nicer listing
 
 ; ------------------------------------------------------------
 ; RESET
@@ -105,7 +108,7 @@ irq_entry:
     phy
 
     tsx
-	stx $0100				; save SP
+	stx save_sp				; save current SP
     lda $0104,x             ; stacked SR after PHA/PHX/PHY
     and #$10
     bne brk_entry			; BREAK
@@ -133,7 +136,7 @@ wait_ack:					; rp2350 will perform context switch
 	jmp ($FFFC)				; else exec reset
 							
 irq_restore:				; context switched
-	ldx $0100
+	ldx save_sp
 	txs						; restore SP
     ply						; restore context
     plx
@@ -146,10 +149,6 @@ nmi_entry:
 
 print_context:
     tsx
-
-
-switch_txt:
-	.byte $0D, "SWITCHED:", $0D, 0
 	
 ; ------------------------------------------------------------
 ; BRK ENTRY
@@ -1271,7 +1270,7 @@ cmd_addrs:
 	.word cmd_reset
 
 welcome_text:
-	.byte 12, "Micmon v0.9e", $0D, $0D, 0
+	.byte 12, "Micmon v0.9f", $0D, $0D, 0
 		
 reg_header:
     .byte "   PC  A  X  Y  S   NV-BDIZC", $0D, 0

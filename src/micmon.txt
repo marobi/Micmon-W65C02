@@ -1,2760 +1,2786 @@
 
 reset:
-E000  78       SEI
-E001  D8       CLD
-E002  A2 FF    LDX #$FF
-E004  9A       TXS
-E005  64 D2    STZ $D2
-E007  64 D3    STZ $D3
-E009  A9 2A    LDA #$2A
-E00B  85 C0    STA $C0
-E00D  A9 E0    LDA #$E0
-E00F  85 C1    STA $C1
-E011  A9 44    LDA #$44
-E013  A2 EF    LDX #$EF
-E015  20 8D E2 JSR print_str
-E018  00       BRK
+B000  78       SEI
+B001  D8       CLD
+B002  A2 FF    LDX #$FF
+B004  9A       TXS
+B005  64 D2    STZ $D2
+B007  64 D3    STZ $D3
+B009  A9 29    LDA #$29
+B00B  85 C0    STA $C0
+B00D  A9 B0    LDA #$B0
+B00F  85 C1    STA $C1
+B011  A9 36    LDA #$36
+B013  A2 BF    LDX #$BF
+B015  20 7F B2 JSR print_str
+B018  00       BRK
 
 irq_entry:
-E019  48       PHA
-E01A  DA       PHX
-E01B  5A       PHY
-E01C  BA       TSX
-E01D  8E 00 01 STX $0100
-E020  BD 04 01 LDA $0104,X
-E023  29 10    AND #$10
-E025  D0 30    BNE brk_entry
+B019  48       PHA
+B01A  DA       PHX
+B01B  5A       PHY
+B01C  BA       TSX
+B01D  86 DA    STX $DA
+B01F  BD 04 01 LDA $0104,X
+B022  29 10    AND #$10
+B024  D0 23    BNE brk_entry
 
 irq_dispatch:
-E027  6C C0 00 JMP (irq_vecL)
+B026  6C C0 00 JMP (irq_vecL)
 
 context_switch:
-E02A  AD 04 D0 LDA $D004
-E02D  F0 FB    BEQ context_switch
-E02F  9C 04 D0 STZ $D004
+B029  AD 04 D0 LDA $D004
+B02C  F0 FB    BEQ context_switch
+B02E  9C 04 D0 STZ $D004
 
 wait_ack:
-E032  AD 04 D0 LDA $D004
-E035  F0 FB    BEQ wait_ack
-E037  AD 03 D0 LDA $D003
-E03A  C9 01    CMP #$01
-E03C  F0 03    BEQ irq_restore
-E03E  6C FC FF JMP ($FFFC)
+B031  AD 04 D0 LDA $D004
+B034  F0 FB    BEQ wait_ack
+B036  AD 03 D0 LDA $D003
+B039  C9 01    CMP #$01
+B03B  F0 03    BEQ irq_restore
+B03D  6C FC FF JMP ($FFFC)
 
 irq_restore:
-E041  AE 00 01 LDX $0100
-E044  9A       TXS
-E045  7A       PLY
-E046  FA       PLX
-E047  68       PLA
-E048  40       RTI
+B040  A6 DA    LDX $DA
+B042  9A       TXS
+B043  7A       PLY
+B044  FA       PLX
+B045  68       PLA
+B046  40       RTI
 
 nmi_entry:
-E049  40       RTI
+B047  40       RTI
 
 print_context:
-E04A  BA       TSX
+B048  BA       TSX
 
-switch_txt:
-E04B  0D 53 57 ORA $5753
-E04E  49 54    EOR #$54
-E050  43       .byte $43
-E051  48       PHA
-E052  45 44    EOR $44
-E054  3A       DEC
-E055  0D 00 68 ORA $6800
-E058  8D 2D 02 STA reg_y
-E05B  68       PLA
-E05C  8D 2C 02 STA reg_x
-E05F  68       PLA
-E060  8D 2B 02 STA reg_a
-E063  68       PLA
-E064  8D 2A 02 STA reg_sr
-E067  68       PLA
-E068  8D 29 02 STA reg_pcl
-E06B  68       PLA
-E06C  8D 28 02 STA reg_pch
-E06F  BA       TSX
-E070  8E 2E 02 STX reg_sp
-E073  D8       CLD
-E074  38       SEC
-E075  AD 29 02 LDA reg_pcl
-E078  E9 02    SBC #$02
-E07A  8D 29 02 STA reg_pcl
-E07D  AD 28 02 LDA reg_pch
-E080  E9 00    SBC #$00
-E082  8D 28 02 STA reg_pch
+brk_entry:
+B049  68       PLA
+B04A  8D 2D 02 STA reg_y
+B04D  68       PLA
+B04E  8D 2C 02 STA reg_x
+B051  68       PLA
+B052  8D 2B 02 STA reg_a
+B055  68       PLA
+B056  8D 2A 02 STA reg_sr
+B059  68       PLA
+B05A  8D 29 02 STA reg_pcl
+B05D  68       PLA
+B05E  8D 28 02 STA reg_pch
+B061  BA       TSX
+B062  8E 2E 02 STX reg_sp
+B065  D8       CLD
+B066  38       SEC
+B067  AD 29 02 LDA reg_pcl
+B06A  E9 02    SBC #$02
+B06C  8D 29 02 STA reg_pcl
+B06F  AD 28 02 LDA reg_pch
+B072  E9 00    SBC #$00
+B074  8D 28 02 STA reg_pch
 
 monitor_entry:
-E085  58       CLI
-E086  20 64 E1 JSR cmd_regs
-E089  20 38 E5 JSR print_prompt
+B077  58       CLI
+B078  20 56 B1 JSR cmd_regs
+B07B  20 2A B5 JSR print_prompt
 
 monitor_loop:
-E08C  20 3F E5 JSR getline
-E08F  A9 00    LDA #$00
-E091  85 C2    STA $C2
-E093  A9 02    LDA #$02
-E095  85 C3    STA $C3
+B07E  20 31 B5 JSR getline
+B081  A9 00    LDA #$00
+B083  85 C2    STA $C2
+B085  A9 02    LDA #$02
+B087  85 C3    STA $C3
 
 execute_line:
-E097  20 4D E4 JSR skip_spaces
-E09A  A0 00    LDY #$00
-E09C  B1 C2    LDA ($C2),Y
-E09E  F0 0A    BEQ exec_done
-E0A0  20 5C E4 JSR toupper
-E0A3  91 C2    STA ($C2),Y
-E0A5  20 B0 E0 JSR dispatch_command
-E0A8  B0 03    BCS exec_nopr
+B089  20 3F B4 JSR skip_spaces
+B08C  A0 00    LDY #$00
+B08E  B1 C2    LDA ($C2),Y
+B090  F0 0A    BEQ exec_done
+B092  20 4E B4 JSR toupper
+B095  91 C2    STA ($C2),Y
+B097  20 A2 B0 JSR dispatch_command
+B09A  B0 03    BCS exec_nopr
 
 exec_done:
-E0AA  20 38 E5 JSR print_prompt
+B09C  20 2A B5 JSR print_prompt
 
 exec_nopr:
-E0AD  4C 8C E0 JMP monitor_loop
+B09F  4C 7E B0 JMP monitor_loop
 
 dispatch_command:
-E0B0  A0 00    LDY #$00
-E0B2  B1 C2    LDA ($C2),Y
-E0B4  85 D6    STA $D6
-E0B6  A2 00    LDX #$00
+B0A2  A0 00    LDY #$00
+B0A4  B1 C2    LDA ($C2),Y
+B0A6  85 D6    STA $D6
+B0A8  A2 00    LDX #$00
 
 dispatch_loop:
-E0B8  BD 28 EF LDA cmd_chars,X
-E0BB  F0 19    BEQ dispatch_error
-E0BD  C5 D6    CMP $D6
-E0BF  F0 04    BEQ dispatch_found
-E0C1  E8       INX
-E0C2  4C B8 E0 JMP dispatch_loop
+B0AA  BD 1A BF LDA cmd_chars,X
+B0AD  F0 19    BEQ dispatch_error
+B0AF  C5 D6    CMP $D6
+B0B1  F0 04    BEQ dispatch_found
+B0B3  E8       INX
+B0B4  4C AA B0 JMP dispatch_loop
 
 dispatch_found:
-E0C5  8A       TXA
-E0C6  0A       ASL
-E0C7  AA       TAX
-E0C8  BD 32 EF LDA cmd_addrs,X
-E0CB  85 C4    STA $C4
-E0CD  E8       INX
-E0CE  BD 32 EF LDA cmd_addrs,X
-E0D1  85 C5    STA $C5
-E0D3  6C C4 00 JMP (jmpvec)
+B0B7  8A       TXA
+B0B8  0A       ASL
+B0B9  AA       TAX
+B0BA  BD 24 BF LDA cmd_addrs,X
+B0BD  85 C4    STA $C4
+B0BF  E8       INX
+B0C0  BD 24 BF LDA cmd_addrs,X
+B0C3  85 C5    STA $C5
+B0C5  6C C4 00 JMP (jmpvec)
 
 dispatch_error:
-E0D6  4C 54 E2 JMP cmd_error
+B0C8  4C 46 B2 JMP cmd_error
 
 cmd_reset:
-E0D9  4C 00 E0 JMP reset
+B0CB  4C 00 B0 JMP reset
 
 cmd_mem:
-E0DC  20 46 E4 JSR advance_lineptr
-E0DF  20 D9 E2 JSR next_token
-E0E2  90 14    BCC mem_default
-E0E4  20 2A E3 JSR parse_word
-E0E7  20 70 E4 JSR copy_T0_R0
-E0EA  20 D9 E2 JSR next_token
-E0ED  90 0C    BCC mem_one_param
-E0EF  20 2A E3 JSR parse_word
-E0F2  20 79 E4 JSR copy_T0_R1
-E0F5  4C 03 E1 JMP mem_prepare
+B0CE  20 38 B4 JSR advance_lineptr
+B0D1  20 CB B2 JSR next_token
+B0D4  90 14    BCC mem_default
+B0D6  20 1C B3 JSR parse_word
+B0D9  20 62 B4 JSR copy_T0_R0
+B0DC  20 CB B2 JSR next_token
+B0DF  90 0C    BCC mem_one_param
+B0E1  20 1C B3 JSR parse_word
+B0E4  20 6B B4 JSR copy_T0_R1
+B0E7  4C F5 B0 JMP mem_prepare
 
 mem_default:
-E0F8  20 94 E4 JSR copy_MEM_R0
+B0EA  20 86 B4 JSR copy_MEM_R0
 
 mem_one_param:
-E0FB  20 82 E4 JSR copy_R0_R1
-E0FE  A9 5F    LDA #$5F
-E100  20 C3 E4 JSR add_R1_A
+B0ED  20 74 B4 JSR copy_R0_R1
+B0F0  A9 5F    LDA #$5F
+B0F2  20 B5 B4 JSR add_R1_A
 
 mem_prepare:
-E103  20 D9 E2 JSR next_token
-E106  90 03    BCC mem_prepare_ok
-E108  4C 54 E2 JMP cmd_error
+B0F5  20 CB B2 JSR next_token
+B0F8  90 03    BCC mem_prepare_ok
+B0FA  4C 46 B2 JMP cmd_error
 
 mem_prepare_ok:
-E10B  20 8B E4 JSR copy_R0_R2
+B0FD  20 7D B4 JSR copy_R0_R2
 
 mem_loop:
-E10E  20 6B E5 JSR check_abort
-E111  B0 16    BCS mem_abort
-E113  20 59 E2 JSR dump_line
-E116  A9 08    LDA #$08
-E118  20 D2 E4 JSR add_R2_A
-E11B  B0 07    BCS mem_ok
-E11D  20 EF E4 JSR cmp_R2_R1
-E120  90 EC    BCC mem_loop
-E122  F0 EA    BEQ mem_loop
+B100  20 5D B5 JSR check_abort
+B103  B0 16    BCS mem_abort
+B105  20 4B B2 JSR dump_line
+B108  A9 08    LDA #$08
+B10A  20 C4 B4 JSR add_R2_A
+B10D  B0 07    BCS mem_ok
+B10F  20 E1 B4 JSR cmp_R2_R1
+B112  90 EC    BCC mem_loop
+B114  F0 EA    BEQ mem_loop
 
 mem_ok:
-E124  20 9D E4 JSR copy_R2_MEM
-E127  18       CLC
-E128  60       RTS
+B116  20 8F B4 JSR copy_R2_MEM
+B119  18       CLC
+B11A  60       RTS
 
 mem_abort:
-E129  4C 54 E2 JMP cmd_error
+B11B  4C 46 B2 JMP cmd_error
 
 cmd_memedit:
-E12C  20 46 E4 JSR advance_lineptr
-E12F  20 2A E3 JSR parse_word
-E132  20 70 E4 JSR copy_T0_R0
-E135  64 D4    STZ $D4
+B11E  20 38 B4 JSR advance_lineptr
+B121  20 1C B3 JSR parse_word
+B124  20 62 B4 JSR copy_T0_R0
+B127  64 D4    STZ $D4
 
 write_loop:
-E137  A5 D4    LDA $D4
-E139  C9 08    CMP #$08
-E13B  B0 16    BCS write_done
-E13D  20 D9 E2 JSR next_token
-E140  90 11    BCC write_done
-E142  20 1D E3 JSR parse_byte
-E145  A0 00    LDY #$00
-E147  A5 CE    LDA $CE
-E149  91 C6    STA ($C6),Y
-E14B  20 A6 E4 JSR inc_R0
-E14E  E6 D4    INC $D4
-E150  4C 37 E1 JMP write_loop
+B129  A5 D4    LDA $D4
+B12B  C9 08    CMP #$08
+B12D  B0 16    BCS write_done
+B12F  20 CB B2 JSR next_token
+B132  90 11    BCC write_done
+B134  20 0F B3 JSR parse_byte
+B137  A0 00    LDY #$00
+B139  A5 CE    LDA $CE
+B13B  91 C6    STA ($C6),Y
+B13D  20 98 B4 JSR inc_R0
+B140  E6 D4    INC $D4
+B142  4C 29 B1 JMP write_loop
 
 write_done:
-E153  A5 D4    LDA $D4
-E155  F0 0A    BEQ write_error
-E157  A5 C6    LDA $C6
-E159  85 D2    STA $D2
-E15B  A5 C7    LDA $C7
-E15D  85 D3    STA $D3
-E15F  18       CLC
-E160  60       RTS
+B145  A5 D4    LDA $D4
+B147  F0 0A    BEQ write_error
+B149  A5 C6    LDA $C6
+B14B  85 D2    STA $D2
+B14D  A5 C7    LDA $C7
+B14F  85 D3    STA $D3
+B151  18       CLC
+B152  60       RTS
 
 write_error:
-E161  4C 54 E2 JMP cmd_error
+B153  4C 46 B2 JMP cmd_error
 
 cmd_regs:
-E164  A9 54    LDA #$54
-E166  A2 EF    LDX #$EF
-E168  20 8D E2 JSR print_str
+B156  A9 46    LDA #$46
+B158  A2 BF    LDX #$BF
+B15A  20 7F B2 JSR print_str
 
 print_reg_line:
-E16B  A9 3B    LDA #$3B
-E16D  20 68 E5 JSR putchar
-E170  20 2E E5 JSR print_space
-E173  AD 28 02 LDA reg_pch
-E176  AE 29 02 LDX reg_pcl
-E179  20 15 E5 JSR print_hex16
-E17C  20 2E E5 JSR print_space
-E17F  AD 2B 02 LDA reg_a
-E182  20 FA E4 JSR print_hex8
-E185  20 2E E5 JSR print_space
-E188  AD 2C 02 LDA reg_x
-E18B  20 FA E4 JSR print_hex8
-E18E  20 2E E5 JSR print_space
-E191  AD 2D 02 LDA reg_y
-E194  20 FA E4 JSR print_hex8
-E197  20 2E E5 JSR print_space
-E19A  AD 2E 02 LDA reg_sp
-E19D  20 FA E4 JSR print_hex8
-E1A0  20 2E E5 JSR print_space
-E1A3  A9 25    LDA #$25
-E1A5  20 68 E5 JSR putchar
-E1A8  AD 2A 02 LDA reg_sr
-E1AB  20 A5 E2 JSR print_status_bits
-E1AE  20 33 E5 JSR newline
-E1B1  18       CLC
-E1B2  60       RTS
+B15D  A9 3B    LDA #$3B
+B15F  20 5A B5 JSR putchar
+B162  20 20 B5 JSR print_space
+B165  AD 28 02 LDA reg_pch
+B168  AE 29 02 LDX reg_pcl
+B16B  20 07 B5 JSR print_hex16
+B16E  20 20 B5 JSR print_space
+B171  AD 2B 02 LDA reg_a
+B174  20 EC B4 JSR print_hex8
+B177  20 20 B5 JSR print_space
+B17A  AD 2C 02 LDA reg_x
+B17D  20 EC B4 JSR print_hex8
+B180  20 20 B5 JSR print_space
+B183  AD 2D 02 LDA reg_y
+B186  20 EC B4 JSR print_hex8
+B189  20 20 B5 JSR print_space
+B18C  AD 2E 02 LDA reg_sp
+B18F  20 EC B4 JSR print_hex8
+B192  20 20 B5 JSR print_space
+B195  A9 25    LDA #$25
+B197  20 5A B5 JSR putchar
+B19A  AD 2A 02 LDA reg_sr
+B19D  20 97 B2 JSR print_status_bits
+B1A0  20 25 B5 JSR newline
+B1A3  18       CLC
+B1A4  60       RTS
 
 cmd_regedit:
-E1B3  20 46 E4 JSR advance_lineptr
-E1B6  20 D9 E2 JSR next_token
-E1B9  90 56    BCC regedit_error
-E1BB  20 2A E3 JSR parse_word
-E1BE  A5 CE    LDA $CE
-E1C0  8D 29 02 STA reg_pcl
-E1C3  A5 CF    LDA $CF
-E1C5  8D 28 02 STA reg_pch
-E1C8  20 D9 E2 JSR next_token
-E1CB  90 3F    BCC regedit_done
-E1CD  20 1D E3 JSR parse_byte
-E1D0  A5 CE    LDA $CE
-E1D2  8D 2B 02 STA reg_a
-E1D5  20 D9 E2 JSR next_token
-E1D8  90 32    BCC regedit_done
-E1DA  20 1D E3 JSR parse_byte
-E1DD  A5 CE    LDA $CE
-E1DF  8D 2C 02 STA reg_x
-E1E2  20 D9 E2 JSR next_token
-E1E5  90 25    BCC regedit_done
-E1E7  20 1D E3 JSR parse_byte
-E1EA  A5 CE    LDA $CE
-E1EC  8D 2D 02 STA reg_y
-E1EF  20 D9 E2 JSR next_token
-E1F2  90 18    BCC regedit_done
-E1F4  20 1D E3 JSR parse_byte
-E1F7  A5 CE    LDA $CE
-E1F9  8D 2E 02 STA reg_sp
-E1FC  20 D9 E2 JSR next_token
-E1FF  90 0B    BCC regedit_done
-E201  20 1D E3 JSR parse_byte
-E204  A5 CE    LDA $CE
-E206  8D 2A 02 STA reg_sr
-E209  20 D9 E2 JSR next_token
+B1A5  20 38 B4 JSR advance_lineptr
+B1A8  20 CB B2 JSR next_token
+B1AB  90 56    BCC regedit_error
+B1AD  20 1C B3 JSR parse_word
+B1B0  A5 CE    LDA $CE
+B1B2  8D 29 02 STA reg_pcl
+B1B5  A5 CF    LDA $CF
+B1B7  8D 28 02 STA reg_pch
+B1BA  20 CB B2 JSR next_token
+B1BD  90 3F    BCC regedit_done
+B1BF  20 0F B3 JSR parse_byte
+B1C2  A5 CE    LDA $CE
+B1C4  8D 2B 02 STA reg_a
+B1C7  20 CB B2 JSR next_token
+B1CA  90 32    BCC regedit_done
+B1CC  20 0F B3 JSR parse_byte
+B1CF  A5 CE    LDA $CE
+B1D1  8D 2C 02 STA reg_x
+B1D4  20 CB B2 JSR next_token
+B1D7  90 25    BCC regedit_done
+B1D9  20 0F B3 JSR parse_byte
+B1DC  A5 CE    LDA $CE
+B1DE  8D 2D 02 STA reg_y
+B1E1  20 CB B2 JSR next_token
+B1E4  90 18    BCC regedit_done
+B1E6  20 0F B3 JSR parse_byte
+B1E9  A5 CE    LDA $CE
+B1EB  8D 2E 02 STA reg_sp
+B1EE  20 CB B2 JSR next_token
+B1F1  90 0B    BCC regedit_done
+B1F3  20 0F B3 JSR parse_byte
+B1F6  A5 CE    LDA $CE
+B1F8  8D 2A 02 STA reg_sr
+B1FB  20 CB B2 JSR next_token
 
 regedit_done:
-E20C  20 64 E1 JSR cmd_regs
-E20F  18       CLC
-E210  60       RTS
+B1FE  20 56 B1 JSR cmd_regs
+B201  18       CLC
+B202  60       RTS
 
 regedit_error:
-E211  4C 54 E2 JMP cmd_error
+B203  4C 46 B2 JMP cmd_error
 
 cmd_go:
-E214  20 46 E4 JSR advance_lineptr
-E217  20 D9 E2 JSR next_token
-E21A  90 15    BCC go_now
-E21C  20 2A E3 JSR parse_word
-E21F  A5 CE    LDA $CE
-E221  8D 29 02 STA reg_pcl
-E224  A5 CF    LDA $CF
-E226  8D 28 02 STA reg_pch
-E229  20 D9 E2 JSR next_token
-E22C  90 03    BCC go_now
-E22E  4C 54 E2 JMP cmd_error
+B206  20 38 B4 JSR advance_lineptr
+B209  20 CB B2 JSR next_token
+B20C  90 15    BCC go_now
+B20E  20 1C B3 JSR parse_word
+B211  A5 CE    LDA $CE
+B213  8D 29 02 STA reg_pcl
+B216  A5 CF    LDA $CF
+B218  8D 28 02 STA reg_pch
+B21B  20 CB B2 JSR next_token
+B21E  90 03    BCC go_now
+B220  4C 46 B2 JMP cmd_error
 
 go_now:
-E231  AE 2E 02 LDX reg_sp
-E234  9A       TXS
-E235  AD 28 02 LDA reg_pch
-E238  48       PHA
-E239  AD 29 02 LDA reg_pcl
-E23C  48       PHA
-E23D  AD 2A 02 LDA reg_sr
-E240  48       PHA
-E241  AD 2B 02 LDA reg_a
-E244  AE 2C 02 LDX reg_x
-E247  AC 2D 02 LDY reg_y
-E24A  40       RTI
+B223  AE 2E 02 LDX reg_sp
+B226  9A       TXS
+B227  AD 28 02 LDA reg_pch
+B22A  48       PHA
+B22B  AD 29 02 LDA reg_pcl
+B22E  48       PHA
+B22F  AD 2A 02 LDA reg_sr
+B232  48       PHA
+B233  AD 2B 02 LDA reg_a
+B236  AE 2C 02 LDX reg_x
+B239  AC 2D 02 LDY reg_y
+B23C  40       RTI
 
 cmd_help:
-E24B  A9 76    LDA #$76
-E24D  A2 EF    LDX #$EF
-E24F  20 8D E2 JSR print_str
-E252  18       CLC
-E253  60       RTS
+B23D  A9 68    LDA #$68
+B23F  A2 BF    LDX #$BF
+B241  20 7F B2 JSR print_str
+B244  18       CLC
+B245  60       RTS
 
 cmd_error:
-E254  20 5D E5 JSR print_error
-E257  38       SEC
-E258  60       RTS
+B246  20 4F B5 JSR print_error
+B249  38       SEC
+B24A  60       RTS
 
 dump_line:
-E259  A9 3E    LDA #$3E
-E25B  20 68 E5 JSR putchar
-E25E  20 2E E5 JSR print_space
-E261  A5 CA    LDA $CA
-E263  85 CE    STA $CE
-E265  A5 CB    LDA $CB
-E267  85 CF    STA $CF
-E269  20 CF E2 JSR print_address_T0
-E26C  A0 00    LDY #$00
+B24B  A9 3E    LDA #$3E
+B24D  20 5A B5 JSR putchar
+B250  20 20 B5 JSR print_space
+B253  A5 CA    LDA $CA
+B255  85 CE    STA $CE
+B257  A5 CB    LDA $CB
+B259  85 CF    STA $CF
+B25B  20 C1 B2 JSR print_address_T0
+B25E  A0 00    LDY #$00
 
 dump_hex_loop:
-E26E  B1 CA    LDA ($CA),Y
-E270  20 FA E4 JSR print_hex8
-E273  20 2E E5 JSR print_space
-E276  C8       INY
-E277  C0 08    CPY #$08
-E279  D0 F3    BNE dump_hex_loop
-E27B  20 2E E5 JSR print_space
-E27E  A0 00    LDY #$00
+B260  B1 CA    LDA ($CA),Y
+B262  20 EC B4 JSR print_hex8
+B265  20 20 B5 JSR print_space
+B268  C8       INY
+B269  C0 08    CPY #$08
+B26B  D0 F3    BNE dump_hex_loop
+B26D  20 20 B5 JSR print_space
+B270  A0 00    LDY #$00
 
 dump_ascii_loop:
-E280  B1 CA    LDA ($CA),Y
-E282  20 1E E5 JSR print_ascii
-E285  C8       INY
-E286  C0 08    CPY #$08
-E288  D0 F6    BNE dump_ascii_loop
-E28A  4C 33 E5 JMP newline
+B272  B1 CA    LDA ($CA),Y
+B274  20 10 B5 JSR print_ascii
+B277  C8       INY
+B278  C0 08    CPY #$08
+B27A  D0 F6    BNE dump_ascii_loop
+B27C  4C 25 B5 JMP newline
 
 print_str:
-E28D  5A       PHY
-E28E  85 CE    STA $CE
-E290  86 CF    STX $CF
-E292  A0 00    LDY #$00
+B27F  5A       PHY
+B280  85 CE    STA $CE
+B282  86 CF    STX $CF
+B284  A0 00    LDY #$00
 
 print_str_loop:
-E294  B1 CE    LDA ($CE),Y
-E296  F0 0B    BEQ print_str_done
-E298  20 68 E5 JSR putchar
-E29B  C8       INY
-E29C  D0 F6    BNE print_str_loop
-E29E  E6 CF    INC $CF
-E2A0  4C 94 E2 JMP print_str_loop
+B286  B1 CE    LDA ($CE),Y
+B288  F0 0B    BEQ print_str_done
+B28A  20 5A B5 JSR putchar
+B28D  C8       INY
+B28E  D0 F6    BNE print_str_loop
+B290  E6 CF    INC $CF
+B292  4C 86 B2 JMP print_str_loop
 
 print_str_done:
-E2A3  7A       PLY
-E2A4  60       RTS
+B295  7A       PLY
+B296  60       RTS
 
 print_status_bits:
-E2A5  85 D6    STA $D6
-E2A7  06 D6    ASL $D6
-E2A9  20 C3 E2 JSR print_bit_c
-E2AC  06 D6    ASL $D6
-E2AE  20 C3 E2 JSR print_bit_c
-E2B1  A9 2D    LDA #$2D
-E2B3  20 68 E5 JSR putchar
-E2B6  06 D6    ASL $D6
-E2B8  A2 05    LDX #$05
+B297  85 D6    STA $D6
+B299  06 D6    ASL $D6
+B29B  20 B5 B2 JSR print_bit_c
+B29E  06 D6    ASL $D6
+B2A0  20 B5 B2 JSR print_bit_c
+B2A3  A9 2D    LDA #$2D
+B2A5  20 5A B5 JSR putchar
+B2A8  06 D6    ASL $D6
+B2AA  A2 05    LDX #$05
 
 ps_loop:
-E2BA  06 D6    ASL $D6
-E2BC  20 C3 E2 JSR print_bit_c
-E2BF  CA       DEX
-E2C0  D0 F8    BNE ps_loop
-E2C2  60       RTS
+B2AC  06 D6    ASL $D6
+B2AE  20 B5 B2 JSR print_bit_c
+B2B1  CA       DEX
+B2B2  D0 F8    BNE ps_loop
+B2B4  60       RTS
 
 print_bit_c:
-E2C3  90 05    BCC ps_zero
-E2C5  A9 31    LDA #$31
-E2C7  4C 68 E5 JMP putchar
+B2B5  90 05    BCC ps_zero
+B2B7  A9 31    LDA #$31
+B2B9  4C 5A B5 JMP putchar
 
 ps_zero:
-E2CA  A9 30    LDA #$30
-E2CC  4C 68 E5 JMP putchar
+B2BC  A9 30    LDA #$30
+B2BE  4C 5A B5 JMP putchar
 
 print_address_T0:
-E2CF  A5 CF    LDA $CF
-E2D1  A6 CE    LDX $CE
-E2D3  20 15 E5 JSR print_hex16
-E2D6  4C 2E E5 JMP print_space
+B2C1  A5 CF    LDA $CF
+B2C3  A6 CE    LDX $CE
+B2C5  20 07 B5 JSR print_hex16
+B2C8  4C 20 B5 JMP print_space
 
 next_token:
-E2D9  20 4D E4 JSR skip_spaces
-E2DC  A0 00    LDY #$00
-E2DE  B1 C2    LDA ($C2),Y
-E2E0  F0 02    BEQ token_eol
-E2E2  38       SEC
-E2E3  60       RTS
+B2CB  20 3F B4 JSR skip_spaces
+B2CE  A0 00    LDY #$00
+B2D0  B1 C2    LDA ($C2),Y
+B2D2  F0 02    BEQ token_eol
+B2D4  38       SEC
+B2D5  60       RTS
 
 token_eol:
-E2E4  18       CLC
-E2E5  60       RTS
+B2D6  18       CLC
+B2D7  60       RTS
 
 parse_param:
-E2E6  20 4D E4 JSR skip_spaces
-E2E9  A0 00    LDY #$00
-E2EB  B1 C2    LDA ($C2),Y
-E2ED  F0 2B    BEQ param_error
-E2EF  C9 24    CMP #$24
-E2F1  F0 0F    BEQ parse_hex_pref
-E2F3  C9 2B    CMP #$2B
-E2F5  F0 11    BEQ parse_dec
-E2F7  C9 25    CMP #$25
-E2F9  F0 13    BEQ parse_bin
-E2FB  C9 27    CMP #$27
-E2FD  F0 15    BEQ parse_ascii
-E2FF  4C 88 E3 JMP parse_hex
+B2D8  20 3F B4 JSR skip_spaces
+B2DB  A0 00    LDY #$00
+B2DD  B1 C2    LDA ($C2),Y
+B2DF  F0 2B    BEQ param_error
+B2E1  C9 24    CMP #$24
+B2E3  F0 0F    BEQ parse_hex_pref
+B2E5  C9 2B    CMP #$2B
+B2E7  F0 11    BEQ parse_dec
+B2E9  C9 25    CMP #$25
+B2EB  F0 13    BEQ parse_bin
+B2ED  C9 27    CMP #$27
+B2EF  F0 15    BEQ parse_ascii
+B2F1  4C 7A B3 JMP parse_hex
 
 parse_hex_pref:
-E302  20 46 E4 JSR advance_lineptr
-E305  4C 88 E3 JMP parse_hex
+B2F4  20 38 B4 JSR advance_lineptr
+B2F7  4C 7A B3 JMP parse_hex
 
 parse_dec:
-E308  20 46 E4 JSR advance_lineptr
-E30B  4C CF E3 JMP parse_decimal
+B2FA  20 38 B4 JSR advance_lineptr
+B2FD  4C C1 B3 JMP parse_decimal
 
 parse_bin:
-E30E  20 46 E4 JSR advance_lineptr
-E311  4C 41 E3 JMP parse_binary
+B300  20 38 B4 JSR advance_lineptr
+B303  4C 33 B3 JMP parse_binary
 
 parse_ascii:
-E314  20 46 E4 JSR advance_lineptr
-E317  4C 2D E3 JMP parse_ascii_char
+B306  20 38 B4 JSR advance_lineptr
+B309  4C 1F B3 JMP parse_ascii_char
 
 param_error:
-E31A  4C 54 E2 JMP cmd_error
+B30C  4C 46 B2 JMP cmd_error
 
 parse_byte:
-E31D  20 E6 E2 JSR parse_param
-E320  A5 D5    LDA $D5
-E322  C9 01    CMP #$01
-E324  F0 03    BEQ parse_byte_ok
-E326  4C 54 E2 JMP cmd_error
+B30F  20 D8 B2 JSR parse_param
+B312  A5 D5    LDA $D5
+B314  C9 01    CMP #$01
+B316  F0 03    BEQ parse_byte_ok
+B318  4C 46 B2 JMP cmd_error
 
 parse_byte_ok:
-E329  60       RTS
+B31B  60       RTS
 
 parse_word:
-E32A  4C E6 E2 JMP parse_param
+B31C  4C D8 B2 JMP parse_param
 
 parse_ascii_char:
-E32D  A0 00    LDY #$00
-E32F  B1 C2    LDA ($C2),Y
-E331  F0 0B    BEQ ascii_error
-E333  85 CE    STA $CE
-E335  64 CF    STZ $CF
-E337  A9 01    LDA #$01
-E339  85 D5    STA $D5
-E33B  4C 46 E4 JMP advance_lineptr
+B31F  A0 00    LDY #$00
+B321  B1 C2    LDA ($C2),Y
+B323  F0 0B    BEQ ascii_error
+B325  85 CE    STA $CE
+B327  64 CF    STZ $CF
+B329  A9 01    LDA #$01
+B32B  85 D5    STA $D5
+B32D  4C 38 B4 JMP advance_lineptr
 
 ascii_error:
-E33E  4C 54 E2 JMP cmd_error
+B330  4C 46 B2 JMP cmd_error
 
 parse_binary:
-E341  64 CE    STZ $CE
-E343  64 CF    STZ $CF
-E345  64 D6    STZ $D6
+B333  64 CE    STZ $CE
+B335  64 CF    STZ $CF
+B337  64 D6    STZ $D6
 
 bin_loop:
-E347  A0 00    LDY #$00
-E349  B1 C2    LDA ($C2),Y
-E34B  C9 30    CMP #$30
-E34D  F0 0B    BEQ bin_zero
-E34F  C9 31    CMP #$31
-E351  F0 17    BEQ bin_one
-E353  C9 2D    CMP #$2D
-E355  F0 13    BEQ bin_one
-E357  4C 7C E3 JMP bin_done
+B339  A0 00    LDY #$00
+B33B  B1 C2    LDA ($C2),Y
+B33D  C9 30    CMP #$30
+B33F  F0 0B    BEQ bin_zero
+B341  C9 31    CMP #$31
+B343  F0 17    BEQ bin_one
+B345  C9 2D    CMP #$2D
+B347  F0 13    BEQ bin_one
+B349  4C 6E B3 JMP bin_done
 
 bin_zero:
-E35A  A5 D6    LDA $D6
-E35C  C9 08    CMP #$08
-E35E  B0 25    BCS bin_error
-E360  06 CE    ASL $CE
-E362  20 46 E4 JSR advance_lineptr
-E365  E6 D6    INC $D6
-E367  4C 47 E3 JMP bin_loop
+B34C  A5 D6    LDA $D6
+B34E  C9 08    CMP #$08
+B350  B0 25    BCS bin_error
+B352  06 CE    ASL $CE
+B354  20 38 B4 JSR advance_lineptr
+B357  E6 D6    INC $D6
+B359  4C 39 B3 JMP bin_loop
 
 bin_one:
-E36A  A5 D6    LDA $D6
-E36C  C9 08    CMP #$08
-E36E  B0 15    BCS bin_error
-E370  06 CE    ASL $CE
-E372  E6 CE    INC $CE
-E374  20 46 E4 JSR advance_lineptr
-E377  E6 D6    INC $D6
-E379  4C 47 E3 JMP bin_loop
+B35C  A5 D6    LDA $D6
+B35E  C9 08    CMP #$08
+B360  B0 15    BCS bin_error
+B362  06 CE    ASL $CE
+B364  E6 CE    INC $CE
+B366  20 38 B4 JSR advance_lineptr
+B369  E6 D6    INC $D6
+B36B  4C 39 B3 JMP bin_loop
 
 bin_done:
-E37C  A5 D6    LDA $D6
-E37E  F0 05    BEQ bin_error
-E380  A9 01    LDA #$01
-E382  85 D5    STA $D5
-E384  60       RTS
+B36E  A5 D6    LDA $D6
+B370  F0 05    BEQ bin_error
+B372  A9 01    LDA #$01
+B374  85 D5    STA $D5
+B376  60       RTS
 
 bin_error:
-E385  4C 54 E2 JMP cmd_error
+B377  4C 46 B2 JMP cmd_error
 
 parse_hex:
-E388  64 CE    STZ $CE
-E38A  64 CF    STZ $CF
-E38C  64 D6    STZ $D6
+B37A  64 CE    STZ $CE
+B37C  64 CF    STZ $CF
+B37E  64 D6    STZ $D6
 
 hex_loop:
-E38E  A0 00    LDY #$00
-E390  B1 C2    LDA ($C2),Y
-E392  20 1D E4 JSR hex_digit
-E395  B0 1C    BCS hex_done
-E397  06 CE    ASL $CE
-E399  26 CF    ROL $CF
-E39B  06 CE    ASL $CE
-E39D  26 CF    ROL $CF
-E39F  06 CE    ASL $CE
-E3A1  26 CF    ROL $CF
-E3A3  06 CE    ASL $CE
-E3A5  26 CF    ROL $CF
-E3A7  05 CE    ORA $CE
-E3A9  85 CE    STA $CE
-E3AB  20 46 E4 JSR advance_lineptr
-E3AE  E6 D6    INC $D6
-E3B0  4C 8E E3 JMP hex_loop
+B380  A0 00    LDY #$00
+B382  B1 C2    LDA ($C2),Y
+B384  20 0F B4 JSR hex_digit
+B387  B0 1C    BCS hex_done
+B389  06 CE    ASL $CE
+B38B  26 CF    ROL $CF
+B38D  06 CE    ASL $CE
+B38F  26 CF    ROL $CF
+B391  06 CE    ASL $CE
+B393  26 CF    ROL $CF
+B395  06 CE    ASL $CE
+B397  26 CF    ROL $CF
+B399  05 CE    ORA $CE
+B39B  85 CE    STA $CE
+B39D  20 38 B4 JSR advance_lineptr
+B3A0  E6 D6    INC $D6
+B3A2  4C 80 B3 JMP hex_loop
 
 hex_done:
-E3B3  A5 D6    LDA $D6
-E3B5  F0 15    BEQ hex_error
-E3B7  C9 03    CMP #$03
-E3B9  90 07    BCC hex_byte
-E3BB  C9 05    CMP #$05
-E3BD  90 08    BCC hex_word
-E3BF  4C 54 E2 JMP cmd_error
+B3A5  A5 D6    LDA $D6
+B3A7  F0 15    BEQ hex_error
+B3A9  C9 03    CMP #$03
+B3AB  90 07    BCC hex_byte
+B3AD  C9 05    CMP #$05
+B3AF  90 08    BCC hex_word
+B3B1  4C 46 B2 JMP cmd_error
 
 hex_byte:
-E3C2  A9 01    LDA #$01
-E3C4  85 D5    STA $D5
-E3C6  60       RTS
+B3B4  A9 01    LDA #$01
+B3B6  85 D5    STA $D5
+B3B8  60       RTS
 
 hex_word:
-E3C7  A9 02    LDA #$02
-E3C9  85 D5    STA $D5
-E3CB  60       RTS
+B3B9  A9 02    LDA #$02
+B3BB  85 D5    STA $D5
+B3BD  60       RTS
 
 hex_error:
-E3CC  4C 54 E2 JMP cmd_error
+B3BE  4C 46 B2 JMP cmd_error
 
 parse_decimal:
-E3CF  64 CE    STZ $CE
-E3D1  64 CF    STZ $CF
-E3D3  64 D5    STZ $D5
+B3C1  64 CE    STZ $CE
+B3C3  64 CF    STZ $CF
+B3C5  64 D5    STZ $D5
 
 dec_loop:
-E3D5  A0 00    LDY #$00
-E3D7  B1 C2    LDA ($C2),Y
-E3D9  C9 30    CMP #$30
-E3DB  90 2B    BCC dec_done
-E3DD  C9 3A    CMP #$3A
-E3DF  B0 27    BCS dec_done
-E3E1  38       SEC
-E3E2  E9 30    SBC #$30
-E3E4  85 D6    STA $D6
-E3E6  20 67 E4 JSR copy_T0_T1
-E3E9  64 CE    STZ $CE
-E3EB  64 CF    STZ $CF
-E3ED  A2 0A    LDX #$0A
+B3C7  A0 00    LDY #$00
+B3C9  B1 C2    LDA ($C2),Y
+B3CB  C9 30    CMP #$30
+B3CD  90 2B    BCC dec_done
+B3CF  C9 3A    CMP #$3A
+B3D1  B0 27    BCS dec_done
+B3D3  38       SEC
+B3D4  E9 30    SBC #$30
+B3D6  85 D6    STA $D6
+B3D8  20 59 B4 JSR copy_T0_T1
+B3DB  64 CE    STZ $CE
+B3DD  64 CF    STZ $CF
+B3DF  A2 0A    LDX #$0A
 
 dec_mul_loop:
-E3EF  20 E1 E4 JSR add_T1_T0
-E3F2  CA       DEX
-E3F3  D0 FA    BNE dec_mul_loop
-E3F5  18       CLC
-E3F6  A5 CE    LDA $CE
-E3F8  65 D6    ADC $D6
-E3FA  85 CE    STA $CE
-E3FC  90 02    BCC dec_next
-E3FE  E6 CF    INC $CF
+B3E1  20 D3 B4 JSR add_T1_T0
+B3E4  CA       DEX
+B3E5  D0 FA    BNE dec_mul_loop
+B3E7  18       CLC
+B3E8  A5 CE    LDA $CE
+B3EA  65 D6    ADC $D6
+B3EC  85 CE    STA $CE
+B3EE  90 02    BCC dec_next
+B3F0  E6 CF    INC $CF
 
 dec_next:
-E400  20 46 E4 JSR advance_lineptr
-E403  E6 D5    INC $D5
-E405  4C D5 E3 JMP dec_loop
+B3F2  20 38 B4 JSR advance_lineptr
+B3F5  E6 D5    INC $D5
+B3F7  4C C7 B3 JMP dec_loop
 
 dec_done:
-E408  A5 D5    LDA $D5
-E40A  F0 0E    BEQ dec_error
-E40C  A5 CF    LDA $CF
-E40E  F0 05    BEQ dec_byte
-E410  A9 02    LDA #$02
-E412  85 D5    STA $D5
-E414  60       RTS
+B3FA  A5 D5    LDA $D5
+B3FC  F0 0E    BEQ dec_error
+B3FE  A5 CF    LDA $CF
+B400  F0 05    BEQ dec_byte
+B402  A9 02    LDA #$02
+B404  85 D5    STA $D5
+B406  60       RTS
 
 dec_byte:
-E415  A9 01    LDA #$01
-E417  85 D5    STA $D5
-E419  60       RTS
+B407  A9 01    LDA #$01
+B409  85 D5    STA $D5
+B40B  60       RTS
 
 dec_error:
-E41A  4C 54 E2 JMP cmd_error
+B40C  4C 46 B2 JMP cmd_error
 
 hex_digit:
-E41D  C9 30    CMP #$30
-E41F  90 23    BCC hex_bad
-E421  C9 3A    CMP #$3A
-E423  90 1A    BCC hex_num
-E425  C9 41    CMP #$41
-E427  90 04    BCC hex_lower
-E429  C9 47    CMP #$47
-E42B  90 0D    BCC hex_upper
+B40F  C9 30    CMP #$30
+B411  90 23    BCC hex_bad
+B413  C9 3A    CMP #$3A
+B415  90 1A    BCC hex_num
+B417  C9 41    CMP #$41
+B419  90 04    BCC hex_lower
+B41B  C9 47    CMP #$47
+B41D  90 0D    BCC hex_upper
 
 hex_lower:
-E42D  C9 61    CMP #$61
-E42F  90 13    BCC hex_bad
-E431  C9 67    CMP #$67
-E433  B0 0F    BCS hex_bad
-E435  38       SEC
-E436  E9 57    SBC #$57
-E438  18       CLC
-E439  60       RTS
+B41F  C9 61    CMP #$61
+B421  90 13    BCC hex_bad
+B423  C9 67    CMP #$67
+B425  B0 0F    BCS hex_bad
+B427  38       SEC
+B428  E9 57    SBC #$57
+B42A  18       CLC
+B42B  60       RTS
 
 hex_upper:
-E43A  38       SEC
-E43B  E9 37    SBC #$37
-E43D  18       CLC
-E43E  60       RTS
+B42C  38       SEC
+B42D  E9 37    SBC #$37
+B42F  18       CLC
+B430  60       RTS
 
 hex_num:
-E43F  38       SEC
-E440  E9 30    SBC #$30
-E442  18       CLC
-E443  60       RTS
+B431  38       SEC
+B432  E9 30    SBC #$30
+B434  18       CLC
+B435  60       RTS
 
 hex_bad:
-E444  38       SEC
-E445  60       RTS
+B436  38       SEC
+B437  60       RTS
 
 advance_lineptr:
-E446  E6 C2    INC $C2
-E448  D0 02    BNE ptr_done
-E44A  E6 C3    INC $C3
+B438  E6 C2    INC $C2
+B43A  D0 02    BNE ptr_done
+B43C  E6 C3    INC $C3
 
 ptr_done:
-E44C  60       RTS
+B43E  60       RTS
 
 skip_spaces:
-E44D  A0 00    LDY #$00
-E44F  B1 C2    LDA ($C2),Y
-E451  C9 20    CMP #$20
-E453  D0 06    BNE skip_done
-E455  20 46 E4 JSR advance_lineptr
-E458  4C 4D E4 JMP skip_spaces
+B43F  A0 00    LDY #$00
+B441  B1 C2    LDA ($C2),Y
+B443  C9 20    CMP #$20
+B445  D0 06    BNE skip_done
+B447  20 38 B4 JSR advance_lineptr
+B44A  4C 3F B4 JMP skip_spaces
 
 skip_done:
-E45B  60       RTS
+B44D  60       RTS
 
 toupper:
-E45C  C9 61    CMP #$61
-E45E  90 06    BCC upper_done
-E460  C9 7B    CMP #$7B
-E462  B0 02    BCS upper_done
-E464  29 DF    AND #$DF
+B44E  C9 61    CMP #$61
+B450  90 06    BCC upper_done
+B452  C9 7B    CMP #$7B
+B454  B0 02    BCS upper_done
+B456  29 DF    AND #$DF
 
 upper_done:
-E466  60       RTS
+B458  60       RTS
 
 copy_T0_T1:
-E467  A5 CE    LDA $CE
-E469  85 D0    STA $D0
-E46B  A5 CF    LDA $CF
-E46D  85 D1    STA $D1
-E46F  60       RTS
+B459  A5 CE    LDA $CE
+B45B  85 D0    STA $D0
+B45D  A5 CF    LDA $CF
+B45F  85 D1    STA $D1
+B461  60       RTS
 
 copy_T0_R0:
-E470  A5 CE    LDA $CE
-E472  85 C6    STA $C6
-E474  A5 CF    LDA $CF
-E476  85 C7    STA $C7
-E478  60       RTS
+B462  A5 CE    LDA $CE
+B464  85 C6    STA $C6
+B466  A5 CF    LDA $CF
+B468  85 C7    STA $C7
+B46A  60       RTS
 
 copy_T0_R1:
-E479  A5 CE    LDA $CE
-E47B  85 C8    STA $C8
-E47D  A5 CF    LDA $CF
-E47F  85 C9    STA $C9
-E481  60       RTS
+B46B  A5 CE    LDA $CE
+B46D  85 C8    STA $C8
+B46F  A5 CF    LDA $CF
+B471  85 C9    STA $C9
+B473  60       RTS
 
 copy_R0_R1:
-E482  A5 C6    LDA $C6
-E484  85 C8    STA $C8
-E486  A5 C7    LDA $C7
-E488  85 C9    STA $C9
-E48A  60       RTS
+B474  A5 C6    LDA $C6
+B476  85 C8    STA $C8
+B478  A5 C7    LDA $C7
+B47A  85 C9    STA $C9
+B47C  60       RTS
 
 copy_R0_R2:
-E48B  A5 C6    LDA $C6
-E48D  85 CA    STA $CA
-E48F  A5 C7    LDA $C7
-E491  85 CB    STA $CB
-E493  60       RTS
+B47D  A5 C6    LDA $C6
+B47F  85 CA    STA $CA
+B481  A5 C7    LDA $C7
+B483  85 CB    STA $CB
+B485  60       RTS
 
 copy_MEM_R0:
-E494  A5 D2    LDA $D2
-E496  85 C6    STA $C6
-E498  A5 D3    LDA $D3
-E49A  85 C7    STA $C7
-E49C  60       RTS
+B486  A5 D2    LDA $D2
+B488  85 C6    STA $C6
+B48A  A5 D3    LDA $D3
+B48C  85 C7    STA $C7
+B48E  60       RTS
 
 copy_R2_MEM:
-E49D  A5 CA    LDA $CA
-E49F  85 D2    STA $D2
-E4A1  A5 CB    LDA $CB
-E4A3  85 D3    STA $D3
-E4A5  60       RTS
+B48F  A5 CA    LDA $CA
+B491  85 D2    STA $D2
+B493  A5 CB    LDA $CB
+B495  85 D3    STA $D3
+B497  60       RTS
 
 inc_R0:
-E4A6  E6 C6    INC $C6
-E4A8  D0 02    BNE inc_r0_done
-E4AA  E6 C7    INC $C7
+B498  E6 C6    INC $C6
+B49A  D0 02    BNE inc_r0_done
+B49C  E6 C7    INC $C7
 
 inc_r0_done:
-E4AC  60       RTS
+B49E  60       RTS
 
 inc_R2:
-E4AD  E6 CA    INC $CA
-E4AF  D0 02    BNE inc_r2_done
-E4B1  E6 CB    INC $CB
+B49F  E6 CA    INC $CA
+B4A1  D0 02    BNE inc_r2_done
+B4A3  E6 CB    INC $CB
 
 inc_r2_done:
-E4B3  60       RTS
+B4A5  60       RTS
 
 add_R0_A:
-E4B4  18       CLC
-E4B5  65 C6    ADC $C6
-E4B7  85 C6    STA $C6
-E4B9  90 04    BCC add_r0_no_wrap
-E4BB  E6 C7    INC $C7
-E4BD  F0 02    BEQ add_r0_wrap
+B4A6  18       CLC
+B4A7  65 C6    ADC $C6
+B4A9  85 C6    STA $C6
+B4AB  90 04    BCC add_r0_no_wrap
+B4AD  E6 C7    INC $C7
+B4AF  F0 02    BEQ add_r0_wrap
 
 add_r0_no_wrap:
-E4BF  18       CLC
-E4C0  60       RTS
+B4B1  18       CLC
+B4B2  60       RTS
 
 add_r0_wrap:
-E4C1  38       SEC
-E4C2  60       RTS
+B4B3  38       SEC
+B4B4  60       RTS
 
 add_R1_A:
-E4C3  18       CLC
-E4C4  65 C8    ADC $C8
-E4C6  85 C8    STA $C8
-E4C8  90 04    BCC add_r1_no_wrap
-E4CA  E6 C9    INC $C9
-E4CC  F0 02    BEQ add_r1_wrap
+B4B5  18       CLC
+B4B6  65 C8    ADC $C8
+B4B8  85 C8    STA $C8
+B4BA  90 04    BCC add_r1_no_wrap
+B4BC  E6 C9    INC $C9
+B4BE  F0 02    BEQ add_r1_wrap
 
 add_r1_no_wrap:
-E4CE  18       CLC
-E4CF  60       RTS
+B4C0  18       CLC
+B4C1  60       RTS
 
 add_r1_wrap:
-E4D0  38       SEC
-E4D1  60       RTS
+B4C2  38       SEC
+B4C3  60       RTS
 
 add_R2_A:
-E4D2  18       CLC
-E4D3  65 CA    ADC $CA
-E4D5  85 CA    STA $CA
-E4D7  90 04    BCC add_r2_no_wrap
-E4D9  E6 CB    INC $CB
-E4DB  F0 02    BEQ add_r2_wrap
+B4C4  18       CLC
+B4C5  65 CA    ADC $CA
+B4C7  85 CA    STA $CA
+B4C9  90 04    BCC add_r2_no_wrap
+B4CB  E6 CB    INC $CB
+B4CD  F0 02    BEQ add_r2_wrap
 
 add_r2_no_wrap:
-E4DD  18       CLC
-E4DE  60       RTS
+B4CF  18       CLC
+B4D0  60       RTS
 
 add_r2_wrap:
-E4DF  38       SEC
-E4E0  60       RTS
+B4D1  38       SEC
+B4D2  60       RTS
 
 add_T1_T0:
-E4E1  18       CLC
-E4E2  A5 CE    LDA $CE
-E4E4  65 D0    ADC $D0
-E4E6  85 CE    STA $CE
-E4E8  A5 CF    LDA $CF
-E4EA  65 D1    ADC $D1
-E4EC  85 CF    STA $CF
-E4EE  60       RTS
+B4D3  18       CLC
+B4D4  A5 CE    LDA $CE
+B4D6  65 D0    ADC $D0
+B4D8  85 CE    STA $CE
+B4DA  A5 CF    LDA $CF
+B4DC  65 D1    ADC $D1
+B4DE  85 CF    STA $CF
+B4E0  60       RTS
 
 cmp_R2_R1:
-E4EF  A5 CB    LDA $CB
-E4F1  C5 C9    CMP $C9
-E4F3  D0 04    BNE cmp_r2_r1_done
-E4F5  A5 CA    LDA $CA
-E4F7  C5 C8    CMP $C8
+B4E1  A5 CB    LDA $CB
+B4E3  C5 C9    CMP $C9
+B4E5  D0 04    BNE cmp_r2_r1_done
+B4E7  A5 CA    LDA $CA
+B4E9  C5 C8    CMP $C8
 
 cmp_r2_r1_done:
-E4F9  60       RTS
+B4EB  60       RTS
 
 print_hex8:
-E4FA  48       PHA
-E4FB  4A       LSR
-E4FC  4A       LSR
-E4FD  4A       LSR
-E4FE  4A       LSR
-E4FF  20 05 E5 JSR print_hex_digit
-E502  68       PLA
-E503  29 0F    AND #$0F
+B4EC  48       PHA
+B4ED  4A       LSR
+B4EE  4A       LSR
+B4EF  4A       LSR
+B4F0  4A       LSR
+B4F1  20 F7 B4 JSR print_hex_digit
+B4F4  68       PLA
+B4F5  29 0F    AND #$0F
 
 print_hex_digit:
-E505  C9 0A    CMP #$0A
-E507  90 06    BCC print_hex_num
-E509  18       CLC
-E50A  69 37    ADC #$37
-E50C  4C 68 E5 JMP putchar
+B4F7  C9 0A    CMP #$0A
+B4F9  90 06    BCC print_hex_num
+B4FB  18       CLC
+B4FC  69 37    ADC #$37
+B4FE  4C 5A B5 JMP putchar
 
 print_hex_num:
-E50F  18       CLC
-E510  69 30    ADC #$30
-E512  4C 68 E5 JMP putchar
+B501  18       CLC
+B502  69 30    ADC #$30
+B504  4C 5A B5 JMP putchar
 
 print_hex16:
-E515  DA       PHX
-E516  20 FA E4 JSR print_hex8
-E519  FA       PLX
-E51A  8A       TXA
-E51B  4C FA E4 JMP print_hex8
+B507  DA       PHX
+B508  20 EC B4 JSR print_hex8
+B50B  FA       PLX
+B50C  8A       TXA
+B50D  4C EC B4 JMP print_hex8
 
 print_ascii:
-E51E  C9 20    CMP #$20
-E520  90 07    BCC ascii_dot
-E522  C9 7F    CMP #$7F
-E524  B0 03    BCS ascii_dot
-E526  4C 68 E5 JMP putchar
+B510  C9 20    CMP #$20
+B512  90 07    BCC ascii_dot
+B514  C9 7F    CMP #$7F
+B516  B0 03    BCS ascii_dot
+B518  4C 5A B5 JMP putchar
 
 ascii_dot:
-E529  A9 2E    LDA #$2E
-E52B  4C 68 E5 JMP putchar
+B51B  A9 2E    LDA #$2E
+B51D  4C 5A B5 JMP putchar
 
 print_space:
-E52E  A9 20    LDA #$20
-E530  4C 68 E5 JMP putchar
+B520  A9 20    LDA #$20
+B522  4C 5A B5 JMP putchar
 
 newline:
-E533  A9 0D    LDA #$0D
-E535  4C 68 E5 JMP putchar
+B525  A9 0D    LDA #$0D
+B527  4C 5A B5 JMP putchar
 
 print_prompt:
-E538  A9 72    LDA #$72
-E53A  A2 EF    LDX #$EF
-E53C  4C 8D E2 JMP print_str
+B52A  A9 64    LDA #$64
+B52C  A2 BF    LDX #$BF
+B52E  4C 7F B2 JMP print_str
 
 getline:
-E53F  A2 00    LDX #$00
+B531  A2 00    LDX #$00
 
 getline_loop:
-E541  20 65 E5 JSR getchar
-E544  C9 0D    CMP #$0D
-E546  F0 0F    BEQ getline_done
-E548  C9 0A    CMP #$0A
-E54A  F0 0B    BEQ getline_done
-E54C  E0 3B    CPX #$3B
-E54E  B0 F1    BCS getline_loop
-E550  9D 00 02 STA linebuf,X
-E553  E8       INX
-E554  4C 41 E5 JMP getline_loop
+B533  20 57 B5 JSR getchar
+B536  C9 0D    CMP #$0D
+B538  F0 0F    BEQ getline_done
+B53A  C9 0A    CMP #$0A
+B53C  F0 0B    BEQ getline_done
+B53E  E0 3B    CPX #$3B
+B540  B0 F1    BCS getline_loop
+B542  9D 00 02 STA linebuf,X
+B545  E8       INX
+B546  4C 33 B5 JMP getline_loop
 
 getline_done:
-E557  A9 00    LDA #$00
-E559  9D 00 02 STA linebuf,X
-E55C  60       RTS
+B549  A9 00    LDA #$00
+B54B  9D 00 02 STA linebuf,X
+B54E  60       RTS
 
 print_error:
-E55D  A9 3F    LDA #$3F
-E55F  20 68 E5 JSR putchar
-E562  4C 33 E5 JMP newline
+B54F  A9 3F    LDA #$3F
+B551  20 5A B5 JSR putchar
+B554  4C 25 B5 JMP newline
 
 getchar:
-E565  4C 00 F0 JMP LF000
+B557  4C 00 F0 JMP LF000
 
 putchar:
-E568  4C 03 F0 JMP LF003
+B55A  4C 03 F0 JMP LF003
 
 check_abort:
-E56B  4C 09 F0 JMP LF009
+B55D  4C 09 F0 JMP LF009
 
 cmd_disasm:
-E56E  20 46 E4 JSR advance_lineptr
-E571  20 D9 E2 JSR next_token
-E574  90 14    BCC dis_default
-E576  20 2A E3 JSR parse_word
-E579  20 70 E4 JSR copy_T0_R0
-E57C  20 D9 E2 JSR next_token
-E57F  90 0C    BCC dis_one_param
-E581  20 2A E3 JSR parse_word
-E584  20 79 E4 JSR copy_T0_R1
-E587  4C 97 E5 JMP dis_prepare_range
+B560  20 38 B4 JSR advance_lineptr
+B563  20 CB B2 JSR next_token
+B566  90 14    BCC dis_default
+B568  20 1C B3 JSR parse_word
+B56B  20 62 B4 JSR copy_T0_R0
+B56E  20 CB B2 JSR next_token
+B571  90 0C    BCC dis_one_param
+B573  20 1C B3 JSR parse_word
+B576  20 6B B4 JSR copy_T0_R1
+B579  4C 89 B5 JMP dis_prepare_range
 
 dis_default:
-E58A  20 94 E4 JSR copy_MEM_R0
+B57C  20 86 B4 JSR copy_MEM_R0
 
 dis_one_param:
-E58D  20 82 E4 JSR copy_R0_R1
-E590  A9 0C    LDA #$0C
-E592  85 D4    STA $D4
-E594  4C 9F E5 JMP dis_prepare_count
+B57F  20 74 B4 JSR copy_R0_R1
+B582  A9 0C    LDA #$0C
+B584  85 D4    STA $D4
+B586  4C 91 B5 JMP dis_prepare_count
 
 dis_prepare_range:
-E597  20 D9 E2 JSR next_token
-E59A  90 21    BCC dis_range_ok
-E59C  4C 54 E2 JMP cmd_error
+B589  20 CB B2 JSR next_token
+B58C  90 21    BCC dis_range_ok
+B58E  4C 46 B2 JMP cmd_error
 
 dis_prepare_count:
-E59F  20 D9 E2 JSR next_token
-E5A2  90 03    BCC dis_count_ok
-E5A4  4C 54 E2 JMP cmd_error
+B591  20 CB B2 JSR next_token
+B594  90 03    BCC dis_count_ok
+B596  4C 46 B2 JMP cmd_error
 
 dis_count_ok:
-E5A7  20 8B E4 JSR copy_R0_R2
+B599  20 7D B4 JSR copy_R0_R2
 
 dis_loop_count:
-E5AA  20 6B E5 JSR check_abort
-E5AD  B0 2D    BCS dis_abort
-E5AF  20 DF E5 JSR disasm_line
-E5B2  B0 23    BCS dis_done
-E5B4  C6 D4    DEC $D4
-E5B6  D0 F2    BNE dis_loop_count
-E5B8  20 9D E4 JSR copy_R2_MEM
-E5BB  18       CLC
-E5BC  60       RTS
+B59C  20 5D B5 JSR check_abort
+B59F  B0 2D    BCS dis_abort
+B5A1  20 D1 B5 JSR disasm_line
+B5A4  B0 23    BCS dis_done
+B5A6  C6 D4    DEC $D4
+B5A8  D0 F2    BNE dis_loop_count
+B5AA  20 8F B4 JSR copy_R2_MEM
+B5AD  18       CLC
+B5AE  60       RTS
 
 dis_range_ok:
-E5BD  20 8B E4 JSR copy_R0_R2
+B5AF  20 7D B4 JSR copy_R0_R2
 
 dis_loop_range:
-E5C0  20 6B E5 JSR check_abort
-E5C3  B0 17    BCS dis_abort
-E5C5  20 EF E4 JSR cmp_R2_R1
-E5C8  90 05    BCC dis_do_line
-E5CA  F0 03    BEQ dis_do_line
-E5CC  4C D7 E5 JMP dis_done
+B5B2  20 5D B5 JSR check_abort
+B5B5  B0 17    BCS dis_abort
+B5B7  20 E1 B4 JSR cmp_R2_R1
+B5BA  90 05    BCC dis_do_line
+B5BC  F0 03    BEQ dis_do_line
+B5BE  4C C9 B5 JMP dis_done
 
 dis_do_line:
-E5CF  20 DF E5 JSR disasm_line
-E5D2  B0 03    BCS dis_done
-E5D4  4C C0 E5 JMP dis_loop_range
+B5C1  20 D1 B5 JSR disasm_line
+B5C4  B0 03    BCS dis_done
+B5C6  4C B2 B5 JMP dis_loop_range
 
 dis_done:
-E5D7  20 9D E4 JSR copy_R2_MEM
-E5DA  18       CLC
-E5DB  60       RTS
+B5C9  20 8F B4 JSR copy_R2_MEM
+B5CC  18       CLC
+B5CD  60       RTS
 
 dis_abort:
-E5DC  4C 54 E2 JMP cmd_error
+B5CE  4C 46 B2 JMP cmd_error
 
 disasm_line:
-E5DF  20 10 E6 JSR print_disasm_address
-E5E2  A0 00    LDY #$00
-E5E4  B1 CA    LDA ($CA),Y
-E5E6  85 CE    STA $CE
-E5E8  AA       TAX
-E5E9  BD 51 EC LDA mode_table,X
-E5EC  85 CC    STA $CC
-E5EE  20 81 E8 JSR get_oplen_from_mode
-E5F1  85 CD    STA $CD
-E5F3  20 6B E8 JSR get_mnemonic_id_x
-E5F6  20 6F E8 JSR get_mnemonic_ptr_id
-E5F9  20 1D E6 JSR print_disasm_bytes
-E5FC  20 2E E5 JSR print_space
-E5FF  20 2E E5 JSR print_space
-E602  20 4D E6 JSR print_mnemonic
-E605  20 57 E6 JSR print_operand
-E608  20 33 E5 JSR newline
-E60B  A5 CD    LDA $CD
-E60D  4C D2 E4 JMP add_R2_A
+B5D1  20 02 B6 JSR print_disasm_address
+B5D4  A0 00    LDY #$00
+B5D6  B1 CA    LDA ($CA),Y
+B5D8  85 CE    STA $CE
+B5DA  AA       TAX
+B5DB  BD 43 BC LDA mode_table,X
+B5DE  85 CC    STA $CC
+B5E0  20 73 B8 JSR get_oplen_from_mode
+B5E3  85 CD    STA $CD
+B5E5  20 5D B8 JSR get_mnemonic_id_x
+B5E8  20 61 B8 JSR get_mnemonic_ptr_id
+B5EB  20 0F B6 JSR print_disasm_bytes
+B5EE  20 20 B5 JSR print_space
+B5F1  20 20 B5 JSR print_space
+B5F4  20 3F B6 JSR print_mnemonic
+B5F7  20 49 B6 JSR print_operand
+B5FA  20 25 B5 JSR newline
+B5FD  A5 CD    LDA $CD
+B5FF  4C C4 B4 JMP add_R2_A
 
 print_disasm_address:
-E610  A5 CB    LDA $CB
-E612  A6 CA    LDX $CA
-E614  20 15 E5 JSR print_hex16
-E617  20 2E E5 JSR print_space
-E61A  4C 2E E5 JMP print_space
+B602  A5 CB    LDA $CB
+B604  A6 CA    LDX $CA
+B606  20 07 B5 JSR print_hex16
+B609  20 20 B5 JSR print_space
+B60C  4C 20 B5 JMP print_space
 
 print_disasm_bytes:
-E61D  A0 00    LDY #$00
+B60F  A0 00    LDY #$00
 
 pdb_real_loop:
-E61F  C4 CD    CPY $CD
-E621  F0 0E    BEQ pdb_pad
-E623  B1 CA    LDA ($CA),Y
-E625  20 FA E4 JSR print_hex8
-E628  20 2E E5 JSR print_space
-E62B  C8       INY
-E62C  C0 03    CPY #$03
-E62E  D0 EF    BNE pdb_real_loop
-E630  60       RTS
+B611  C4 CD    CPY $CD
+B613  F0 0E    BEQ pdb_pad
+B615  B1 CA    LDA ($CA),Y
+B617  20 EC B4 JSR print_hex8
+B61A  20 20 B5 JSR print_space
+B61D  C8       INY
+B61E  C0 03    CPY #$03
+B620  D0 EF    BNE pdb_real_loop
+B622  60       RTS
 
 pdb_pad:
-E631  C0 03    CPY #$03
-E633  F0 11    BEQ pdb_done
-E635  A9 20    LDA #$20
-E637  20 68 E5 JSR putchar
-E63A  A9 20    LDA #$20
-E63C  20 68 E5 JSR putchar
-E63F  20 2E E5 JSR print_space
-E642  C8       INY
-E643  4C 31 E6 JMP pdb_pad
+B623  C0 03    CPY #$03
+B625  F0 11    BEQ pdb_done
+B627  A9 20    LDA #$20
+B629  20 5A B5 JSR putchar
+B62C  A9 20    LDA #$20
+B62E  20 5A B5 JSR putchar
+B631  20 20 B5 JSR print_space
+B634  C8       INY
+B635  4C 23 B6 JMP pdb_pad
 
 pdb_done:
-E646  60       RTS
+B638  60       RTS
 
 print_disasm_gap:
-E647  20 2E E5 JSR print_space
-E64A  4C 2E E5 JMP print_space
+B639  20 20 B5 JSR print_space
+B63C  4C 20 B5 JMP print_space
 
 print_mnemonic:
-E64D  A5 D0    LDA $D0
-E64F  A6 D1    LDX $D1
-E651  20 8D E2 JSR print_str
-E654  4C 2E E5 JMP print_space
+B63F  A5 D0    LDA $D0
+B641  A6 D1    LDX $D1
+B643  20 7F B2 JSR print_str
+B646  4C 20 B5 JMP print_space
 
 print_operand:
-E657  A5 CC    LDA $CC
-E659  0A       ASL
-E65A  AA       TAX
-E65B  BD BA E7 LDA operand_vecs,X
-E65E  85 C4    STA $C4
-E660  E8       INX
-E661  BD BA E7 LDA operand_vecs,X
-E664  85 C5    STA $C5
-E666  6C C4 00 JMP (jmpvec)
+B649  A5 CC    LDA $CC
+B64B  0A       ASL
+B64C  AA       TAX
+B64D  BD AC B7 LDA operand_vecs,X
+B650  85 C4    STA $C4
+B652  E8       INX
+B653  BD AC B7 LDA operand_vecs,X
+B656  85 C5    STA $C5
+B658  6C C4 00 JMP (jmpvec)
 
 fmt_imp:
-E669  60       RTS
+B65B  60       RTS
 
 fmt_acc:
-E66A  20 2E E5 JSR print_space
-E66D  A9 41    LDA #$41
-E66F  4C 68 E5 JMP putchar
+B65C  20 20 B5 JSR print_space
+B65F  A9 41    LDA #$41
+B661  4C 5A B5 JMP putchar
 
 fmt_imm:
-E672  A9 23    LDA #$23
-E674  20 68 E5 JSR putchar
-E677  A9 24    LDA #$24
-E679  20 68 E5 JSR putchar
-E67C  A0 01    LDY #$01
-E67E  B1 CA    LDA ($CA),Y
-E680  4C FA E4 JMP print_hex8
+B664  A9 23    LDA #$23
+B666  20 5A B5 JSR putchar
+B669  A9 24    LDA #$24
+B66B  20 5A B5 JSR putchar
+B66E  A0 01    LDY #$01
+B670  B1 CA    LDA ($CA),Y
+B672  4C EC B4 JMP print_hex8
 
 fmt_zp:
-E683  20 2E E5 JSR print_space
+B675  20 20 B5 JSR print_space
 
 fmt_zp2:
-E686  A9 24    LDA #$24
-E688  20 68 E5 JSR putchar
-E68B  A0 01    LDY #$01
-E68D  B1 CA    LDA ($CA),Y
-E68F  4C FA E4 JMP print_hex8
+B678  A9 24    LDA #$24
+B67A  20 5A B5 JSR putchar
+B67D  A0 01    LDY #$01
+B67F  B1 CA    LDA ($CA),Y
+B681  4C EC B4 JMP print_hex8
 
 fmt_zpx:
-E692  20 83 E6 JSR fmt_zp
-E695  A9 2C    LDA #$2C
-E697  20 68 E5 JSR putchar
-E69A  A9 58    LDA #$58
-E69C  4C 68 E5 JMP putchar
+B684  20 75 B6 JSR fmt_zp
+B687  A9 2C    LDA #$2C
+B689  20 5A B5 JSR putchar
+B68C  A9 58    LDA #$58
+B68E  4C 5A B5 JMP putchar
 
 fmt_zpy:
-E69F  20 83 E6 JSR fmt_zp
-E6A2  A9 2C    LDA #$2C
-E6A4  20 68 E5 JSR putchar
-E6A7  A9 59    LDA #$59
-E6A9  4C 68 E5 JMP putchar
+B691  20 75 B6 JSR fmt_zp
+B694  A9 2C    LDA #$2C
+B696  20 5A B5 JSR putchar
+B699  A9 59    LDA #$59
+B69B  4C 5A B5 JMP putchar
 
 fmt_abs:
-E6AC  20 2E E5 JSR print_space
+B69E  20 20 B5 JSR print_space
 
 fmt_abs2:
-E6AF  A9 24    LDA #$24
-E6B1  20 68 E5 JSR putchar
-E6B4  A0 01    LDY #$01
-E6B6  B1 CA    LDA ($CA),Y
-E6B8  AA       TAX
-E6B9  C8       INY
-E6BA  B1 CA    LDA ($CA),Y
-E6BC  4C 15 E5 JMP print_hex16
+B6A1  A9 24    LDA #$24
+B6A3  20 5A B5 JSR putchar
+B6A6  A0 01    LDY #$01
+B6A8  B1 CA    LDA ($CA),Y
+B6AA  AA       TAX
+B6AB  C8       INY
+B6AC  B1 CA    LDA ($CA),Y
+B6AE  4C 07 B5 JMP print_hex16
 
 fmt_absx:
-E6BF  20 AC E6 JSR fmt_abs
-E6C2  A9 2C    LDA #$2C
-E6C4  20 68 E5 JSR putchar
-E6C7  A9 58    LDA #$58
-E6C9  4C 68 E5 JMP putchar
+B6B1  20 9E B6 JSR fmt_abs
+B6B4  A9 2C    LDA #$2C
+B6B6  20 5A B5 JSR putchar
+B6B9  A9 58    LDA #$58
+B6BB  4C 5A B5 JMP putchar
 
 fmt_absy:
-E6CC  20 AC E6 JSR fmt_abs
-E6CF  A9 2C    LDA #$2C
-E6D1  20 68 E5 JSR putchar
-E6D4  A9 59    LDA #$59
-E6D6  4C 68 E5 JMP putchar
+B6BE  20 9E B6 JSR fmt_abs
+B6C1  A9 2C    LDA #$2C
+B6C3  20 5A B5 JSR putchar
+B6C6  A9 59    LDA #$59
+B6C8  4C 5A B5 JMP putchar
 
 fmt_ind:
-E6D9  A9 28    LDA #$28
-E6DB  20 68 E5 JSR putchar
-E6DE  20 AF E6 JSR fmt_abs2
-E6E1  A9 29    LDA #$29
-E6E3  4C 68 E5 JMP putchar
+B6CB  A9 28    LDA #$28
+B6CD  20 5A B5 JSR putchar
+B6D0  20 A1 B6 JSR fmt_abs2
+B6D3  A9 29    LDA #$29
+B6D5  4C 5A B5 JMP putchar
 
 fmt_indx:
-E6E6  A9 28    LDA #$28
-E6E8  20 68 E5 JSR putchar
-E6EB  20 86 E6 JSR fmt_zp2
-E6EE  A9 2C    LDA #$2C
-E6F0  20 68 E5 JSR putchar
-E6F3  A9 58    LDA #$58
-E6F5  20 68 E5 JSR putchar
-E6F8  A9 29    LDA #$29
-E6FA  4C 68 E5 JMP putchar
+B6D8  A9 28    LDA #$28
+B6DA  20 5A B5 JSR putchar
+B6DD  20 78 B6 JSR fmt_zp2
+B6E0  A9 2C    LDA #$2C
+B6E2  20 5A B5 JSR putchar
+B6E5  A9 58    LDA #$58
+B6E7  20 5A B5 JSR putchar
+B6EA  A9 29    LDA #$29
+B6EC  4C 5A B5 JMP putchar
 
 fmt_indy:
-E6FD  A9 28    LDA #$28
-E6FF  20 68 E5 JSR putchar
-E702  20 86 E6 JSR fmt_zp2
-E705  A9 29    LDA #$29
-E707  20 68 E5 JSR putchar
-E70A  A9 2C    LDA #$2C
-E70C  20 68 E5 JSR putchar
-E70F  A9 59    LDA #$59
-E711  4C 68 E5 JMP putchar
+B6EF  A9 28    LDA #$28
+B6F1  20 5A B5 JSR putchar
+B6F4  20 78 B6 JSR fmt_zp2
+B6F7  A9 29    LDA #$29
+B6F9  20 5A B5 JSR putchar
+B6FC  A9 2C    LDA #$2C
+B6FE  20 5A B5 JSR putchar
+B701  A9 59    LDA #$59
+B703  4C 5A B5 JMP putchar
 
 fmt_zpind:
-E714  A9 28    LDA #$28
-E716  20 68 E5 JSR putchar
-E719  20 86 E6 JSR fmt_zp2
-E71C  A9 29    LDA #$29
-E71E  4C 68 E5 JMP putchar
+B706  A9 28    LDA #$28
+B708  20 5A B5 JSR putchar
+B70B  20 78 B6 JSR fmt_zp2
+B70E  A9 29    LDA #$29
+B710  4C 5A B5 JMP putchar
 
 fmt_rel:
-E721  A0 01    LDY #$01
-E723  B1 CA    LDA ($CA),Y
-E725  85 D0    STA $D0
-E727  A5 CA    LDA $CA
-E729  18       CLC
-E72A  69 02    ADC #$02
-E72C  85 CE    STA $CE
-E72E  A5 CB    LDA $CB
-E730  69 00    ADC #$00
-E732  85 CF    STA $CF
-E734  A5 D0    LDA $D0
-E736  30 0B    BMI rel_neg
-E738  18       CLC
-E739  65 CE    ADC $CE
-E73B  AA       TAX
-E73C  A5 CF    LDA $CF
-E73E  69 00    ADC #$00
-E740  4C 4B E7 JMP rel_print
+B713  A0 01    LDY #$01
+B715  B1 CA    LDA ($CA),Y
+B717  85 D0    STA $D0
+B719  A5 CA    LDA $CA
+B71B  18       CLC
+B71C  69 02    ADC #$02
+B71E  85 CE    STA $CE
+B720  A5 CB    LDA $CB
+B722  69 00    ADC #$00
+B724  85 CF    STA $CF
+B726  A5 D0    LDA $D0
+B728  30 0B    BMI rel_neg
+B72A  18       CLC
+B72B  65 CE    ADC $CE
+B72D  AA       TAX
+B72E  A5 CF    LDA $CF
+B730  69 00    ADC #$00
+B732  4C 3D B7 JMP rel_print
 
 rel_neg:
-E743  18       CLC
-E744  65 CE    ADC $CE
-E746  AA       TAX
-E747  A5 CF    LDA $CF
-E749  69 FF    ADC #$FF
+B735  18       CLC
+B736  65 CE    ADC $CE
+B738  AA       TAX
+B739  A5 CF    LDA $CF
+B73B  69 FF    ADC #$FF
 
 rel_print:
-E74B  48       PHA
-E74C  20 2E E5 JSR print_space
-E74F  A9 24    LDA #$24
-E751  20 68 E5 JSR putchar
-E754  68       PLA
-E755  4C 15 E5 JMP print_hex16
+B73D  48       PHA
+B73E  20 20 B5 JSR print_space
+B741  A9 24    LDA #$24
+B743  20 5A B5 JSR putchar
+B746  68       PLA
+B747  4C 07 B5 JMP print_hex16
 
 fmt_zprel:
-E758  20 86 E6 JSR fmt_zp2
-E75B  A9 2C    LDA #$2C
-E75D  20 68 E5 JSR putchar
-E760  A0 02    LDY #$02
-E762  B1 CA    LDA ($CA),Y
-E764  85 D0    STA $D0
-E766  A5 CA    LDA $CA
-E768  18       CLC
-E769  69 03    ADC #$03
-E76B  85 CE    STA $CE
-E76D  A5 CB    LDA $CB
-E76F  69 00    ADC #$00
-E771  85 CF    STA $CF
-E773  A5 D0    LDA $D0
-E775  30 0B    BMI zrel_neg
-E777  18       CLC
-E778  65 CE    ADC $CE
-E77A  AA       TAX
-E77B  A5 CF    LDA $CF
-E77D  69 00    ADC #$00
-E77F  4C 8A E7 JMP zrel_print
+B74A  20 78 B6 JSR fmt_zp2
+B74D  A9 2C    LDA #$2C
+B74F  20 5A B5 JSR putchar
+B752  A0 02    LDY #$02
+B754  B1 CA    LDA ($CA),Y
+B756  85 D0    STA $D0
+B758  A5 CA    LDA $CA
+B75A  18       CLC
+B75B  69 03    ADC #$03
+B75D  85 CE    STA $CE
+B75F  A5 CB    LDA $CB
+B761  69 00    ADC #$00
+B763  85 CF    STA $CF
+B765  A5 D0    LDA $D0
+B767  30 0B    BMI zrel_neg
+B769  18       CLC
+B76A  65 CE    ADC $CE
+B76C  AA       TAX
+B76D  A5 CF    LDA $CF
+B76F  69 00    ADC #$00
+B771  4C 7C B7 JMP zrel_print
 
 zrel_neg:
-E782  18       CLC
-E783  65 CE    ADC $CE
-E785  AA       TAX
-E786  A5 CF    LDA $CF
-E788  69 FF    ADC #$FF
+B774  18       CLC
+B775  65 CE    ADC $CE
+B777  AA       TAX
+B778  A5 CF    LDA $CF
+B77A  69 FF    ADC #$FF
 
 zrel_print:
-E78A  48       PHA
-E78B  A9 24    LDA #$24
-E78D  20 68 E5 JSR putchar
-E790  68       PLA
-E791  4C 15 E5 JMP print_hex16
+B77C  48       PHA
+B77D  A9 24    LDA #$24
+B77F  20 5A B5 JSR putchar
+B782  68       PLA
+B783  4C 07 B5 JMP print_hex16
 
 fmt_aix:
-E794  A9 28    LDA #$28
-E796  20 68 E5 JSR putchar
-E799  20 AF E6 JSR fmt_abs2
-E79C  A9 2C    LDA #$2C
-E79E  20 68 E5 JSR putchar
-E7A1  A9 58    LDA #$58
-E7A3  20 68 E5 JSR putchar
-E7A6  A9 29    LDA #$29
-E7A8  4C 68 E5 JMP putchar
+B786  A9 28    LDA #$28
+B788  20 5A B5 JSR putchar
+B78B  20 A1 B6 JSR fmt_abs2
+B78E  A9 2C    LDA #$2C
+B790  20 5A B5 JSR putchar
+B793  A9 58    LDA #$58
+B795  20 5A B5 JSR putchar
+B798  A9 29    LDA #$29
+B79A  4C 5A B5 JMP putchar
 
 fmt_ill:
-E7AB  20 2E E5 JSR print_space
-E7AE  A9 24    LDA #$24
-E7B0  20 68 E5 JSR putchar
-E7B3  A0 00    LDY #$00
-E7B5  B1 CA    LDA ($CA),Y
-E7B7  4C FA E4 JMP print_hex8
+B79D  20 20 B5 JSR print_space
+B7A0  A9 24    LDA #$24
+B7A2  20 5A B5 JSR putchar
+B7A5  A0 00    LDY #$00
+B7A7  B1 CA    LDA ($CA),Y
+B7A9  4C EC B4 JMP print_hex8
 
 operand_vecs:
-E7BA  69 E6    ADC #$E6
-E7BC  6A       ROR
-E7BD  E6 72    INC $72
-E7BF  E6 83    INC $83
-E7C1  E6 92    INC $92
-E7C3  E6 9F    INC $9F
-E7C5  E6 AC    INC $AC
-E7C7  E6 BF    INC $BF
-E7C9  E6 CC    INC $CC
-E7CB  E6 D9    INC $D9
-E7CD  E6 E6    INC $E6
-E7CF  E6 FD    INC $FD
-E7D1  E6 14    INC $14
-E7D3  E7 21    SMB6 $21
-E7D5  E7 58    SMB6 $58
-E7D7  E7 94    SMB6 $94
-E7D9  E7 AB    SMB6 $AB
-E7DB  E7 20    SMB6 $20
-E7DD  46 E4    LSR $E4
-E7DF  20 D9 E2 JSR next_token
-E7E2  B0 03    BCS ca_have_first
-E7E4  4C 54 E2 JMP cmd_error
+B7AC  5B       .byte $5B
+B7AD  B6 5C    LDX $5C,Y
+B7AF  B6 64    LDX $64,Y
+B7B1  B6 75    LDX $75,Y
+B7B3  B6 84    LDX $84,Y
+B7B5  B6 91    LDX $91,Y
+B7B7  B6 9E    LDX $9E,Y
+B7B9  B6 B1    LDX $B1,Y
+B7BB  B6 BE    LDX $BE,Y
+B7BD  B6 CB    LDX $CB,Y
+B7BF  B6 D8    LDX $D8,Y
+B7C1  B6 EF    LDX $EF,Y
+B7C3  B6 06    LDX $06,Y
+B7C5  B7 13    SMB3 $13
+B7C7  B7 4A    SMB3 $4A
+B7C9  B7 86    SMB3 $86
+B7CB  B7 9D    SMB3 $9D
+B7CD  B7 20    SMB3 $20
+B7CF  38       SEC
+B7D0  B4 20    LDY $20,X
+B7D2  CB       WAI
+B7D3  B2 B0    LDA ($B0)
+B7D5  03       .byte $03
+B7D6  4C 46 B2 JMP cmd_error
 
 ca_have_first:
-E7E7  A0 00    LDY #$00
-E7E9  B1 C2    LDA ($C2),Y
-E7EB  20 5C E4 JSR toupper
-E7EE  C9 41    CMP #$41
-E7F0  90 04    BCC ca_with_addr
-E7F2  C9 5B    CMP #$5B
-E7F4  90 0E    BCC ca_default_addr
+B7D9  A0 00    LDY #$00
+B7DB  B1 C2    LDA ($C2),Y
+B7DD  20 4E B4 JSR toupper
+B7E0  C9 41    CMP #$41
+B7E2  90 04    BCC ca_with_addr
+B7E4  C9 5B    CMP #$5B
+B7E6  90 0E    BCC ca_default_addr
 
 ca_with_addr:
-E7F6  20 2A E3 JSR parse_word
-E7F9  20 70 E4 JSR copy_T0_R0
-E7FC  20 D9 E2 JSR next_token
-E7FF  B0 06    BCS ca_mnemonic
-E801  4C 54 E2 JMP cmd_error
+B7E8  20 1C B3 JSR parse_word
+B7EB  20 62 B4 JSR copy_T0_R0
+B7EE  20 CB B2 JSR next_token
+B7F1  B0 06    BCS ca_mnemonic
+B7F3  4C 46 B2 JMP cmd_error
 
 ca_default_addr:
-E804  20 94 E4 JSR copy_MEM_R0
+B7F6  20 86 B4 JSR copy_MEM_R0
 
 ca_mnemonic:
-E807  20 8B E4 JSR copy_R0_R2
-E80A  20 23 E8 JSR parse_mnemonic
-E80D  20 88 E8 JSR parse_asm_operand
-E810  20 D9 E2 JSR next_token
-E813  90 03    BCC ca_find
-E815  4C 54 E2 JMP cmd_error
+B7F9  20 7D B4 JSR copy_R0_R2
+B7FC  20 15 B8 JSR parse_mnemonic
+B7FF  20 7A B8 JSR parse_asm_operand
+B802  20 CB B2 JSR next_token
+B805  90 03    BCC ca_find
+B807  4C 46 B2 JMP cmd_error
 
 ca_find:
-E818  20 AE E9 JSR find_opcode
-E81B  B0 03    BCS ca_emit
-E81D  4C 54 E2 JMP cmd_error
+B80A  20 A0 B9 JSR find_opcode
+B80D  B0 03    BCS ca_emit
+B80F  4C 46 B2 JMP cmd_error
 
 ca_emit:
-E820  4C 31 EA JMP emit_instruction
+B812  4C 23 BA JMP emit_instruction
 
 parse_mnemonic:
-E823  20 4D E4 JSR skip_spaces
-E826  A5 C2    LDA $C2
-E828  85 C8    STA $C8
-E82A  A5 C3    LDA $C3
-E82C  85 C9    STA $C9
-E82E  64 D9    STZ $D9
+B815  20 3F B4 JSR skip_spaces
+B818  A5 C2    LDA $C2
+B81A  85 C8    STA $C8
+B81C  A5 C3    LDA $C3
+B81E  85 C9    STA $C9
+B820  64 D9    STZ $D9
 
 pm_loop:
-E830  A0 00    LDY #$00
-E832  B1 C2    LDA ($C2),Y
-E834  F0 0C    BEQ pm_done
-E836  C9 20    CMP #$20
-E838  F0 08    BEQ pm_done
-E83A  E6 D9    INC $D9
-E83C  20 46 E4 JSR advance_lineptr
-E83F  4C 30 E8 JMP pm_loop
+B822  A0 00    LDY #$00
+B824  B1 C2    LDA ($C2),Y
+B826  F0 0C    BEQ pm_done
+B828  C9 20    CMP #$20
+B82A  F0 08    BEQ pm_done
+B82C  E6 D9    INC $D9
+B82E  20 38 B4 JSR advance_lineptr
+B831  4C 22 B8 JMP pm_loop
 
 pm_done:
-E842  A5 D9    LDA $D9
-E844  D0 03    BNE pm_ok
-E846  4C 54 E2 JMP cmd_error
+B834  A5 D9    LDA $D9
+B836  D0 03    BNE pm_ok
+B838  4C 46 B2 JMP cmd_error
 
 pm_ok:
-E849  60       RTS
+B83B  60       RTS
 
 compare_mnemonic:
-E84A  A0 00    LDY #$00
+B83C  A0 00    LDY #$00
 
 cm_loop:
-E84C  C4 D9    CPY $D9
-E84E  F0 13    BEQ cm_end_input
-E850  B1 C8    LDA ($C8),Y
-E852  20 5C E4 JSR toupper
-E855  85 D6    STA $D6
-E857  B1 D0    LDA ($D0),Y
-E859  F0 0C    BEQ cm_no
-E85B  C5 D6    CMP $D6
-E85D  D0 08    BNE cm_no
-E85F  C8       INY
-E860  4C 4C E8 JMP cm_loop
+B83E  C4 D9    CPY $D9
+B840  F0 13    BEQ cm_end_input
+B842  B1 C8    LDA ($C8),Y
+B844  20 4E B4 JSR toupper
+B847  85 D6    STA $D6
+B849  B1 D0    LDA ($D0),Y
+B84B  F0 0C    BEQ cm_no
+B84D  C5 D6    CMP $D6
+B84F  D0 08    BNE cm_no
+B851  C8       INY
+B852  4C 3E B8 JMP cm_loop
 
 cm_end_input:
-E863  B1 D0    LDA ($D0),Y
-E865  F0 02    BEQ cm_yes
+B855  B1 D0    LDA ($D0),Y
+B857  F0 02    BEQ cm_yes
 
 cm_no:
-E867  18       CLC
-E868  60       RTS
+B859  18       CLC
+B85A  60       RTS
 
 cm_yes:
-E869  38       SEC
-E86A  60       RTS
+B85B  38       SEC
+B85C  60       RTS
 
 get_mnemonic_id_x:
-E86B  BD 28 EE LDA mnemonic_id_table,X
-E86E  60       RTS
+B85D  BD 1A BE LDA mnemonic_id_table,X
+B860  60       RTS
 
 get_mnemonic_ptr_id:
-E86F  DA       PHX
-E870  85 D6    STA $D6
-E872  0A       ASL
-E873  AA       TAX
-E874  BD 62 ED LDA mnemonic_text_ptrs,X
-E877  85 D0    STA $D0
-E879  E8       INX
-E87A  BD 62 ED LDA mnemonic_text_ptrs,X
-E87D  85 D1    STA $D1
-E87F  FA       PLX
-E880  60       RTS
+B861  DA       PHX
+B862  85 D6    STA $D6
+B864  0A       ASL
+B865  AA       TAX
+B866  BD 54 BD LDA mnemonic_text_ptrs,X
+B869  85 D0    STA $D0
+B86B  E8       INX
+B86C  BD 54 BD LDA mnemonic_text_ptrs,X
+B86F  85 D1    STA $D1
+B871  FA       PLX
+B872  60       RTS
 
 get_oplen_from_mode:
-E881  DA       PHX
-E882  AA       TAX
-E883  BD 51 ED LDA mode_len_table,X
-E886  FA       PLX
-E887  60       RTS
+B873  DA       PHX
+B874  AA       TAX
+B875  BD 43 BD LDA mode_len_table,X
+B878  FA       PLX
+B879  60       RTS
 
 parse_asm_operand:
-E888  20 D9 E2 JSR next_token
-E88B  B0 05    BCS pa_have_operand
-E88D  A9 00    LDA #$00
-E88F  85 D7    STA $D7
-E891  60       RTS
+B87A  20 CB B2 JSR next_token
+B87D  B0 05    BCS pa_have_operand
+B87F  A9 00    LDA #$00
+B881  85 D7    STA $D7
+B883  60       RTS
 
 pa_have_operand:
-E892  A0 00    LDY #$00
-E894  B1 C2    LDA ($C2),Y
-E896  C9 23    CMP #$23
-E898  F0 2B    BEQ pa_imm
-E89A  C9 28    CMP #$28
-E89C  F0 32    BEQ pa_paren
-E89E  20 5C E4 JSR toupper
-E8A1  C9 41    CMP #$41
-E8A3  F0 03    BEQ pa_have_a
-E8A5  4C 4E E9 JMP pa_value
+B884  A0 00    LDY #$00
+B886  B1 C2    LDA ($C2),Y
+B888  C9 23    CMP #$23
+B88A  F0 2B    BEQ pa_imm
+B88C  C9 28    CMP #$28
+B88E  F0 32    BEQ pa_paren
+B890  20 4E B4 JSR toupper
+B893  C9 41    CMP #$41
+B895  F0 03    BEQ pa_have_a
+B897  4C 40 B9 JMP pa_value
 
 pa_have_a:
-E8A8  A0 01    LDY #$01
-E8AA  B1 C2    LDA ($C2),Y
-E8AC  F0 07    BEQ pa_try_acc
-E8AE  C9 20    CMP #$20
-E8B0  F0 03    BEQ pa_try_acc
-E8B2  4C 4E E9 JMP pa_value
+B89A  A0 01    LDY #$01
+B89C  B1 C2    LDA ($C2),Y
+B89E  F0 07    BEQ pa_try_acc
+B8A0  C9 20    CMP #$20
+B8A2  F0 03    BEQ pa_try_acc
+B8A4  4C 40 B9 JMP pa_value
 
 pa_try_acc:
-E8B5  20 46 E4 JSR advance_lineptr
-E8B8  20 D9 E2 JSR next_token
-E8BB  90 03    BCC pa_acc
-E8BD  4C 54 E2 JMP cmd_error
+B8A7  20 38 B4 JSR advance_lineptr
+B8AA  20 CB B2 JSR next_token
+B8AD  90 03    BCC pa_acc
+B8AF  4C 46 B2 JMP cmd_error
 
 pa_acc:
-E8C0  A9 01    LDA #$01
-E8C2  85 D7    STA $D7
-E8C4  60       RTS
+B8B2  A9 01    LDA #$01
+B8B4  85 D7    STA $D7
+B8B6  60       RTS
 
 pa_imm:
-E8C5  20 46 E4 JSR advance_lineptr
-E8C8  20 1D E3 JSR parse_byte
-E8CB  A9 02    LDA #$02
-E8CD  85 D7    STA $D7
-E8CF  60       RTS
+B8B7  20 38 B4 JSR advance_lineptr
+B8BA  20 0F B3 JSR parse_byte
+B8BD  A9 02    LDA #$02
+B8BF  85 D7    STA $D7
+B8C1  60       RTS
 
 pa_paren:
-E8D0  20 46 E4 JSR advance_lineptr
-E8D3  20 2A E3 JSR parse_word
-E8D6  A0 00    LDY #$00
-E8D8  B1 C2    LDA ($C2),Y
-E8DA  C9 2C    CMP #$2C
-E8DC  F0 07    BEQ pa_paren_comma
-E8DE  C9 29    CMP #$29
-E8E0  F0 33    BEQ pa_paren_close
-E8E2  4C 54 E2 JMP cmd_error
+B8C2  20 38 B4 JSR advance_lineptr
+B8C5  20 1C B3 JSR parse_word
+B8C8  A0 00    LDY #$00
+B8CA  B1 C2    LDA ($C2),Y
+B8CC  C9 2C    CMP #$2C
+B8CE  F0 07    BEQ pa_paren_comma
+B8D0  C9 29    CMP #$29
+B8D2  F0 33    BEQ pa_paren_close
+B8D4  4C 46 B2 JMP cmd_error
 
 pa_paren_comma:
-E8E5  20 46 E4 JSR advance_lineptr
-E8E8  A0 00    LDY #$00
-E8EA  B1 C2    LDA ($C2),Y
-E8EC  20 5C E4 JSR toupper
-E8EF  C9 58    CMP #$58
-E8F1  F0 03    BEQ pa_paren_x
-E8F3  4C 54 E2 JMP cmd_error
+B8D7  20 38 B4 JSR advance_lineptr
+B8DA  A0 00    LDY #$00
+B8DC  B1 C2    LDA ($C2),Y
+B8DE  20 4E B4 JSR toupper
+B8E1  C9 58    CMP #$58
+B8E3  F0 03    BEQ pa_paren_x
+B8E5  4C 46 B2 JMP cmd_error
 
 pa_paren_x:
-E8F6  20 46 E4 JSR advance_lineptr
-E8F9  A0 00    LDY #$00
-E8FB  B1 C2    LDA ($C2),Y
-E8FD  C9 29    CMP #$29
-E8FF  F0 03    BEQ pa_paren_x_close
-E901  4C 54 E2 JMP cmd_error
+B8E8  20 38 B4 JSR advance_lineptr
+B8EB  A0 00    LDY #$00
+B8ED  B1 C2    LDA ($C2),Y
+B8EF  C9 29    CMP #$29
+B8F1  F0 03    BEQ pa_paren_x_close
+B8F3  4C 46 B2 JMP cmd_error
 
 pa_paren_x_close:
-E904  20 46 E4 JSR advance_lineptr
-E907  A5 CF    LDA $CF
-E909  F0 05    BEQ pa_indx
-E90B  A9 0F    LDA #$0F
-E90D  85 D7    STA $D7
-E90F  60       RTS
+B8F6  20 38 B4 JSR advance_lineptr
+B8F9  A5 CF    LDA $CF
+B8FB  F0 05    BEQ pa_indx
+B8FD  A9 0F    LDA #$0F
+B8FF  85 D7    STA $D7
+B901  60       RTS
 
 pa_indx:
-E910  A9 0A    LDA #$0A
-E912  85 D7    STA $D7
-E914  60       RTS
+B902  A9 0A    LDA #$0A
+B904  85 D7    STA $D7
+B906  60       RTS
 
 pa_paren_close:
-E915  20 46 E4 JSR advance_lineptr
-E918  A0 00    LDY #$00
-E91A  B1 C2    LDA ($C2),Y
-E91C  C9 2C    CMP #$2C
-E91E  F0 0E    BEQ pa_paren_close_comma
-E920  A5 CF    LDA $CF
-E922  F0 05    BEQ pa_zpind
-E924  A9 09    LDA #$09
-E926  85 D7    STA $D7
-E928  60       RTS
+B907  20 38 B4 JSR advance_lineptr
+B90A  A0 00    LDY #$00
+B90C  B1 C2    LDA ($C2),Y
+B90E  C9 2C    CMP #$2C
+B910  F0 0E    BEQ pa_paren_close_comma
+B912  A5 CF    LDA $CF
+B914  F0 05    BEQ pa_zpind
+B916  A9 09    LDA #$09
+B918  85 D7    STA $D7
+B91A  60       RTS
 
 pa_zpind:
-E929  A9 0C    LDA #$0C
-E92B  85 D7    STA $D7
-E92D  60       RTS
+B91B  A9 0C    LDA #$0C
+B91D  85 D7    STA $D7
+B91F  60       RTS
 
 pa_paren_close_comma:
-E92E  20 46 E4 JSR advance_lineptr
-E931  A0 00    LDY #$00
-E933  B1 C2    LDA ($C2),Y
-E935  20 5C E4 JSR toupper
-E938  C9 59    CMP #$59
-E93A  F0 03    BEQ pa_paren_y
-E93C  4C 54 E2 JMP cmd_error
+B920  20 38 B4 JSR advance_lineptr
+B923  A0 00    LDY #$00
+B925  B1 C2    LDA ($C2),Y
+B927  20 4E B4 JSR toupper
+B92A  C9 59    CMP #$59
+B92C  F0 03    BEQ pa_paren_y
+B92E  4C 46 B2 JMP cmd_error
 
 pa_paren_y:
-E93F  20 46 E4 JSR advance_lineptr
-E942  A5 CF    LDA $CF
-E944  F0 03    BEQ pa_indy
-E946  4C 54 E2 JMP cmd_error
+B931  20 38 B4 JSR advance_lineptr
+B934  A5 CF    LDA $CF
+B936  F0 03    BEQ pa_indy
+B938  4C 46 B2 JMP cmd_error
 
 pa_indy:
-E949  A9 0B    LDA #$0B
-E94B  85 D7    STA $D7
-E94D  60       RTS
+B93B  A9 0B    LDA #$0B
+B93D  85 D7    STA $D7
+B93F  60       RTS
 
 pa_value:
-E94E  20 2A E3 JSR parse_word
-E951  A0 00    LDY #$00
-E953  B1 C2    LDA ($C2),Y
-E955  C9 2C    CMP #$2C
-E957  F0 0E    BEQ pa_value_comma
-E959  A5 CF    LDA $CF
-E95B  F0 05    BEQ pa_zp
-E95D  A9 06    LDA #$06
-E95F  85 D7    STA $D7
-E961  60       RTS
+B940  20 1C B3 JSR parse_word
+B943  A0 00    LDY #$00
+B945  B1 C2    LDA ($C2),Y
+B947  C9 2C    CMP #$2C
+B949  F0 0E    BEQ pa_value_comma
+B94B  A5 CF    LDA $CF
+B94D  F0 05    BEQ pa_zp
+B94F  A9 06    LDA #$06
+B951  85 D7    STA $D7
+B953  60       RTS
 
 pa_zp:
-E962  A9 03    LDA #$03
-E964  85 D7    STA $D7
-E966  60       RTS
+B954  A9 03    LDA #$03
+B956  85 D7    STA $D7
+B958  60       RTS
 
 pa_value_comma:
-E967  20 46 E4 JSR advance_lineptr
-E96A  A0 00    LDY #$00
-E96C  B1 C2    LDA ($C2),Y
-E96E  20 5C E4 JSR toupper
-E971  C9 58    CMP #$58
-E973  F0 17    BEQ pa_index_x
-E975  C9 59    CMP #$59
-E977  F0 24    BEQ pa_index_y
-E979  A5 CF    LDA $CF
-E97B  F0 03    BEQ pa_zprel
-E97D  4C 54 E2 JMP cmd_error
+B959  20 38 B4 JSR advance_lineptr
+B95C  A0 00    LDY #$00
+B95E  B1 C2    LDA ($C2),Y
+B960  20 4E B4 JSR toupper
+B963  C9 58    CMP #$58
+B965  F0 17    BEQ pa_index_x
+B967  C9 59    CMP #$59
+B969  F0 24    BEQ pa_index_y
+B96B  A5 CF    LDA $CF
+B96D  F0 03    BEQ pa_zprel
+B96F  4C 46 B2 JMP cmd_error
 
 pa_zprel:
-E980  A5 CE    LDA $CE
-E982  85 D0    STA $D0
-E984  20 2A E3 JSR parse_word
-E987  A9 0E    LDA #$0E
-E989  85 D7    STA $D7
-E98B  60       RTS
+B972  A5 CE    LDA $CE
+B974  85 D0    STA $D0
+B976  20 1C B3 JSR parse_word
+B979  A9 0E    LDA #$0E
+B97B  85 D7    STA $D7
+B97D  60       RTS
 
 pa_index_x:
-E98C  20 46 E4 JSR advance_lineptr
-E98F  A5 CF    LDA $CF
-E991  F0 05    BEQ pa_zpx
-E993  A9 07    LDA #$07
-E995  85 D7    STA $D7
-E997  60       RTS
+B97E  20 38 B4 JSR advance_lineptr
+B981  A5 CF    LDA $CF
+B983  F0 05    BEQ pa_zpx
+B985  A9 07    LDA #$07
+B987  85 D7    STA $D7
+B989  60       RTS
 
 pa_zpx:
-E998  A9 04    LDA #$04
-E99A  85 D7    STA $D7
-E99C  60       RTS
+B98A  A9 04    LDA #$04
+B98C  85 D7    STA $D7
+B98E  60       RTS
 
 pa_index_y:
-E99D  20 46 E4 JSR advance_lineptr
-E9A0  A5 CF    LDA $CF
-E9A2  F0 05    BEQ pa_zpy
-E9A4  A9 08    LDA #$08
-E9A6  85 D7    STA $D7
-E9A8  60       RTS
+B98F  20 38 B4 JSR advance_lineptr
+B992  A5 CF    LDA $CF
+B994  F0 05    BEQ pa_zpy
+B996  A9 08    LDA #$08
+B998  85 D7    STA $D7
+B99A  60       RTS
 
 pa_zpy:
-E9A9  A9 05    LDA #$05
-E9AB  85 D7    STA $D7
-E9AD  60       RTS
+B99B  A9 05    LDA #$05
+B99D  85 D7    STA $D7
+B99F  60       RTS
 
 find_opcode:
-E9AE  A2 00    LDX #$00
+B9A0  A2 00    LDX #$00
 
 fo_loop:
-E9B0  BD 51 EC LDA mode_table,X
-E9B3  C5 D7    CMP $D7
-E9B5  F0 11    BEQ fo_check_mnemonic_direct
-E9B7  C9 0D    CMP #$0D
-E9B9  D0 35    BNE fo_next
-E9BB  A5 D7    LDA $D7
-E9BD  C9 03    CMP #$03
-E9BF  F0 15    BEQ fo_check_mnemonic_rel
-E9C1  C9 06    CMP #$06
-E9C3  F0 11    BEQ fo_check_mnemonic_rel
-E9C5  4C F0 E9 JMP fo_next
+B9A2  BD 43 BC LDA mode_table,X
+B9A5  C5 D7    CMP $D7
+B9A7  F0 11    BEQ fo_check_mnemonic_direct
+B9A9  C9 0D    CMP #$0D
+B9AB  D0 35    BNE fo_next
+B9AD  A5 D7    LDA $D7
+B9AF  C9 03    CMP #$03
+B9B1  F0 15    BEQ fo_check_mnemonic_rel
+B9B3  C9 06    CMP #$06
+B9B5  F0 11    BEQ fo_check_mnemonic_rel
+B9B7  4C E2 B9 JMP fo_next
 
 fo_check_mnemonic_direct:
-E9C8  20 6B E8 JSR get_mnemonic_id_x
-E9CB  20 6F E8 JSR get_mnemonic_ptr_id
-E9CE  20 4A E8 JSR compare_mnemonic
-E9D1  B0 19    BCS fo_found_direct
-E9D3  4C F0 E9 JMP fo_next
+B9BA  20 5D B8 JSR get_mnemonic_id_x
+B9BD  20 61 B8 JSR get_mnemonic_ptr_id
+B9C0  20 3C B8 JSR compare_mnemonic
+B9C3  B0 19    BCS fo_found_direct
+B9C5  4C E2 B9 JMP fo_next
 
 fo_check_mnemonic_rel:
-E9D6  20 6B E8 JSR get_mnemonic_id_x
-E9D9  20 6F E8 JSR get_mnemonic_ptr_id
-E9DC  20 4A E8 JSR compare_mnemonic
-E9DF  B0 03    BCS fo_found_rel
-E9E1  4C F0 E9 JMP fo_next
+B9C8  20 5D B8 JSR get_mnemonic_id_x
+B9CB  20 61 B8 JSR get_mnemonic_ptr_id
+B9CE  20 3C B8 JSR compare_mnemonic
+B9D1  B0 03    BCS fo_found_rel
+B9D3  4C E2 B9 JMP fo_next
 
 fo_found_rel:
-E9E4  A9 0D    LDA #$0D
-E9E6  85 D7    STA $D7
-E9E8  86 D8    STX $D8
-E9EA  38       SEC
-E9EB  60       RTS
+B9D6  A9 0D    LDA #$0D
+B9D8  85 D7    STA $D7
+B9DA  86 D8    STX $D8
+B9DC  38       SEC
+B9DD  60       RTS
 
 fo_found_direct:
-E9EC  86 D8    STX $D8
-E9EE  38       SEC
-E9EF  60       RTS
+B9DE  86 D8    STX $D8
+B9E0  38       SEC
+B9E1  60       RTS
 
 fo_next:
-E9F0  E8       INX
-E9F1  D0 BD    BNE fo_loop
-E9F3  18       CLC
-E9F4  60       RTS
+B9E2  E8       INX
+B9E3  D0 BD    BNE fo_loop
+B9E5  18       CLC
+B9E6  60       RTS
 
 compute_rel_offset:
-E9F5  85 D4    STA $D4
-E9F7  A5 C6    LDA $C6
-E9F9  18       CLC
-E9FA  65 D4    ADC $D4
-E9FC  85 CC    STA $CC
-E9FE  A5 C7    LDA $C7
-EA00  69 00    ADC #$00
-EA02  85 CD    STA $CD
-EA04  38       SEC
-EA05  A5 CE    LDA $CE
-EA07  E5 CC    SBC $CC
-EA09  85 D0    STA $D0
-EA0B  A5 CF    LDA $CF
-EA0D  E5 CD    SBC $CD
-EA0F  85 D1    STA $D1
-EA11  A5 D1    LDA $D1
-EA13  F0 07    BEQ cro_pos
-EA15  C9 FF    CMP #$FF
-EA17  F0 0C    BEQ cro_neg
-EA19  4C 54 E2 JMP cmd_error
+B9E7  85 D4    STA $D4
+B9E9  A5 C6    LDA $C6
+B9EB  18       CLC
+B9EC  65 D4    ADC $D4
+B9EE  85 CC    STA $CC
+B9F0  A5 C7    LDA $C7
+B9F2  69 00    ADC #$00
+B9F4  85 CD    STA $CD
+B9F6  38       SEC
+B9F7  A5 CE    LDA $CE
+B9F9  E5 CC    SBC $CC
+B9FB  85 D0    STA $D0
+B9FD  A5 CF    LDA $CF
+B9FF  E5 CD    SBC $CD
+BA01  85 D1    STA $D1
+BA03  A5 D1    LDA $D1
+BA05  F0 07    BEQ cro_pos
+BA07  C9 FF    CMP #$FF
+BA09  F0 0C    BEQ cro_neg
+BA0B  4C 46 B2 JMP cmd_error
 
 cro_pos:
-EA1C  A5 D0    LDA $D0
-EA1E  C9 80    CMP #$80
-EA20  90 0C    BCC cro_ok
-EA22  4C 54 E2 JMP cmd_error
+BA0E  A5 D0    LDA $D0
+BA10  C9 80    CMP #$80
+BA12  90 0C    BCC cro_ok
+BA14  4C 46 B2 JMP cmd_error
 
 cro_neg:
-EA25  A5 D0    LDA $D0
-EA27  C9 80    CMP #$80
-EA29  B0 03    BCS cro_ok
-EA2B  4C 54 E2 JMP cmd_error
+BA17  A5 D0    LDA $D0
+BA19  C9 80    CMP #$80
+BA1B  B0 03    BCS cro_ok
+BA1D  4C 46 B2 JMP cmd_error
 
 cro_ok:
-EA2E  A5 D0    LDA $D0
-EA30  60       RTS
+BA20  A5 D0    LDA $D0
+BA22  60       RTS
 
 emit_instruction:
-EA31  A5 D7    LDA $D7
-EA33  20 81 E8 JSR get_oplen_from_mode
-EA36  85 CD    STA $CD
-EA38  A5 D7    LDA $D7
-EA3A  C9 0D    CMP #$0D
-EA3C  F0 07    BEQ ei_prep_rel
-EA3E  C9 0E    CMP #$0E
-EA40  F0 0D    BEQ ei_prep_zprel
-EA42  4C 59 EA JMP ei_store
+BA23  A5 D7    LDA $D7
+BA25  20 73 B8 JSR get_oplen_from_mode
+BA28  85 CD    STA $CD
+BA2A  A5 D7    LDA $D7
+BA2C  C9 0D    CMP #$0D
+BA2E  F0 07    BEQ ei_prep_rel
+BA30  C9 0E    CMP #$0E
+BA32  F0 0D    BEQ ei_prep_zprel
+BA34  4C 4B BA JMP ei_store
 
 ei_prep_rel:
-EA45  A9 02    LDA #$02
-EA47  20 F5 E9 JSR compute_rel_offset
-EA4A  85 D1    STA $D1
-EA4C  4C 59 EA JMP ei_store
+BA37  A9 02    LDA #$02
+BA39  20 E7 B9 JSR compute_rel_offset
+BA3C  85 D1    STA $D1
+BA3E  4C 4B BA JMP ei_store
 
 ei_prep_zprel:
-EA4F  A9 03    LDA #$03
-EA51  20 F5 E9 JSR compute_rel_offset
-EA54  85 D1    STA $D1
-EA56  4C 59 EA JMP ei_store
+BA41  A9 03    LDA #$03
+BA43  20 E7 B9 JSR compute_rel_offset
+BA46  85 D1    STA $D1
+BA48  4C 4B BA JMP ei_store
 
 ei_store:
-EA59  A0 00    LDY #$00
-EA5B  A5 D8    LDA $D8
-EA5D  91 C6    STA ($C6),Y
-EA5F  A5 CD    LDA $CD
-EA61  C9 01    CMP #$01
-EA63  F0 32    BEQ ei_finish
-EA65  A5 D7    LDA $D7
-EA67  C9 0D    CMP #$0D
-EA69  F0 18    BEQ ei_rel
-EA6B  C9 0E    CMP #$0E
-EA6D  F0 1D    BEQ ei_zprel
-EA6F  A0 01    LDY #$01
-EA71  A5 CE    LDA $CE
-EA73  91 C6    STA ($C6),Y
-EA75  A5 CD    LDA $CD
-EA77  C9 02    CMP #$02
-EA79  F0 1C    BEQ ei_finish
-EA7B  C8       INY
-EA7C  A5 CF    LDA $CF
-EA7E  91 C6    STA ($C6),Y
-EA80  4C 97 EA JMP ei_finish
+BA4B  A0 00    LDY #$00
+BA4D  A5 D8    LDA $D8
+BA4F  91 C6    STA ($C6),Y
+BA51  A5 CD    LDA $CD
+BA53  C9 01    CMP #$01
+BA55  F0 32    BEQ ei_finish
+BA57  A5 D7    LDA $D7
+BA59  C9 0D    CMP #$0D
+BA5B  F0 18    BEQ ei_rel
+BA5D  C9 0E    CMP #$0E
+BA5F  F0 1D    BEQ ei_zprel
+BA61  A0 01    LDY #$01
+BA63  A5 CE    LDA $CE
+BA65  91 C6    STA ($C6),Y
+BA67  A5 CD    LDA $CD
+BA69  C9 02    CMP #$02
+BA6B  F0 1C    BEQ ei_finish
+BA6D  C8       INY
+BA6E  A5 CF    LDA $CF
+BA70  91 C6    STA ($C6),Y
+BA72  4C 89 BA JMP ei_finish
 
 ei_rel:
-EA83  A0 01    LDY #$01
-EA85  A5 D1    LDA $D1
-EA87  91 C6    STA ($C6),Y
-EA89  4C 97 EA JMP ei_finish
+BA75  A0 01    LDY #$01
+BA77  A5 D1    LDA $D1
+BA79  91 C6    STA ($C6),Y
+BA7B  4C 89 BA JMP ei_finish
 
 ei_zprel:
-EA8C  A0 01    LDY #$01
-EA8E  A5 D0    LDA $D0
-EA90  91 C6    STA ($C6),Y
-EA92  C8       INY
-EA93  A5 D1    LDA $D1
-EA95  91 C6    STA ($C6),Y
+BA7E  A0 01    LDY #$01
+BA80  A5 D0    LDA $D0
+BA82  91 C6    STA ($C6),Y
+BA84  C8       INY
+BA85  A5 D1    LDA $D1
+BA87  91 C6    STA ($C6),Y
 
 ei_finish:
-EA97  A5 CD    LDA $CD
-EA99  20 B4 E4 JSR add_R0_A
-EA9C  A5 C6    LDA $C6
-EA9E  85 D2    STA $D2
-EAA0  A5 C7    LDA $C7
-EAA2  85 D3    STA $D3
-EAA4  60       RTS
+BA89  A5 CD    LDA $CD
+BA8B  20 A6 B4 JSR add_R0_A
+BA8E  A5 C6    LDA $C6
+BA90  85 D2    STA $D2
+BA92  A5 C7    LDA $C7
+BA94  85 D3    STA $D3
+BA96  60       RTS
 
 mn_ILL:
-EAA5  2E 44 42 ROL $4244
-EAA8  00       BRK
+BA97  2E 44 42 ROL $4244
+BA9A  00       BRK
 
 mn_ADC:
-EAA9  41 44    EOR ($44,X)
-EAAB  43       .byte $43
-EAAC  00       BRK
+BA9B  41 44    EOR ($44,X)
+BA9D  43       .byte $43
+BA9E  00       BRK
 
 mn_AND:
-EAAD  41 4E    EOR ($4E,X)
-EAAF  44       .byte $44
-EAB0  00       BRK
+BA9F  41 4E    EOR ($4E,X)
+BAA1  44       .byte $44
+BAA2  00       BRK
 
 mn_ASL:
-EAB1  41 53    EOR ($53,X)
-EAB3  4C 00 42 JMP L4200
-EAB6  43       .byte $43
-EAB7  43       .byte $43
-EAB8  00       BRK
+BAA3  41 53    EOR ($53,X)
+BAA5  4C 00 42 JMP L4200
+BAA8  43       .byte $43
+BAA9  43       .byte $43
+BAAA  00       BRK
 
 mn_BCS:
-EAB9  42       .byte $42
-EABA  43       .byte $43
-EABB  53       .byte $53
-EABC  00       BRK
+BAAB  42       .byte $42
+BAAC  43       .byte $43
+BAAD  53       .byte $53
+BAAE  00       BRK
 
 mn_BEQ:
-EABD  42       .byte $42
-EABE  45 51    EOR $51
-EAC0  00       BRK
+BAAF  42       .byte $42
+BAB0  45 51    EOR $51
+BAB2  00       BRK
 
 mn_BIT:
-EAC1  42       .byte $42
-EAC2  49 54    EOR #$54
-EAC4  00       BRK
+BAB3  42       .byte $42
+BAB4  49 54    EOR #$54
+BAB6  00       BRK
 
 mn_BMI:
-EAC5  42       .byte $42
-EAC6  4D 49 00 EOR $0049
+BAB7  42       .byte $42
+BAB8  4D 49 00 EOR $0049
 
 mn_BNE:
-EAC9  42       .byte $42
-EACA  4E 45 00 LSR $0045
+BABB  42       .byte $42
+BABC  4E 45 00 LSR $0045
 
 mn_BPL:
-EACD  42       .byte $42
-EACE  50 4C    BVC LEB1C
-EAD0  00       BRK
+BABF  42       .byte $42
+BAC0  50 4C    BVC LBB0E
+BAC2  00       BRK
 
 mn_BRA:
-EAD1  42       .byte $42
-EAD2  52 41    EOR ($41)
-EAD4  00       BRK
+BAC3  42       .byte $42
+BAC4  52 41    EOR ($41)
+BAC6  00       BRK
 
 mn_BRK:
-EAD5  42       .byte $42
-EAD6  52 4B    EOR ($4B)
-EAD8  00       BRK
+BAC7  42       .byte $42
+BAC8  52 4B    EOR ($4B)
+BACA  00       BRK
 
 mn_BVC:
-EAD9  42       .byte $42
-EADA  56 43    LSR $43,X
-EADC  00       BRK
+BACB  42       .byte $42
+BACC  56 43    LSR $43,X
+BACE  00       BRK
 
 mn_BVS:
-EADD  42       .byte $42
-EADE  56 53    LSR $53,X
-EAE0  00       BRK
+BACF  42       .byte $42
+BAD0  56 53    LSR $53,X
+BAD2  00       BRK
 
 mn_CLC:
-EAE1  43       .byte $43
-EAE2  4C 43 00 JMP L0043
+BAD3  43       .byte $43
+BAD4  4C 43 00 JMP L0043
 
 mn_CLD:
-EAE5  43       .byte $43
-EAE6  4C 44 00 JMP L0044
+BAD7  43       .byte $43
+BAD8  4C 44 00 JMP L0044
 
 mn_CLI:
-EAE9  43       .byte $43
-EAEA  4C 49 00 JMP L0049
+BADB  43       .byte $43
+BADC  4C 49 00 JMP L0049
 
 mn_CLV:
-EAED  43       .byte $43
-EAEE  4C 56 00 JMP L0056
+BADF  43       .byte $43
+BAE0  4C 56 00 JMP L0056
 
 mn_CMP:
-EAF1  43       .byte $43
-EAF2  4D 50 00 EOR $0050
+BAE3  43       .byte $43
+BAE4  4D 50 00 EOR $0050
 
 mn_CPX:
-EAF5  43       .byte $43
-EAF6  50 58    BVC LEB50
-EAF8  00       BRK
+BAE7  43       .byte $43
+BAE8  50 58    BVC LBB42
+BAEA  00       BRK
 
 mn_CPY:
-EAF9  43       .byte $43
-EAFA  50 59    BVC mn_PLY
-EAFC  00       BRK
+BAEB  43       .byte $43
+BAEC  50 59    BVC mn_PLY
+BAEE  00       BRK
 
 mn_DEC:
-EAFD  44       .byte $44
-EAFE  45 43    EOR $43
-EB00  00       BRK
+BAEF  44       .byte $44
+BAF0  45 43    EOR $43
+BAF2  00       BRK
 
 mn_DEX:
-EB01  44       .byte $44
-EB02  45 58    EOR $58
-EB04  00       BRK
+BAF3  44       .byte $44
+BAF4  45 58    EOR $58
+BAF6  00       BRK
 
 mn_DEY:
-EB05  44       .byte $44
-EB06  45 59    EOR $59
-EB08  00       BRK
+BAF7  44       .byte $44
+BAF8  45 59    EOR $59
+BAFA  00       BRK
 
 mn_EOR:
-EB09  45 4F    EOR $4F
-EB0B  52 00    EOR ($00)
+BAFB  45 4F    EOR $4F
+BAFD  52 00    EOR ($00)
 
 mn_INC:
-EB0D  49 4E    EOR #$4E
-EB0F  43       .byte $43
-EB10  00       BRK
+BAFF  49 4E    EOR #$4E
+BB01  43       .byte $43
+BB02  00       BRK
 
 mn_INX:
-EB11  49 4E    EOR #$4E
-EB13  58       CLI
-EB14  00       BRK
+BB03  49 4E    EOR #$4E
+BB05  58       CLI
+BB06  00       BRK
 
 mn_INY:
-EB15  49 4E    EOR #$4E
-EB17  59 00 4A EOR $4A00,Y
-EB1A  4D 50 00 EOR $0050
+BB07  49 4E    EOR #$4E
+BB09  59 00 4A EOR $4A00,Y
+BB0C  4D 50 00 EOR $0050
 
 mn_JSR:
-EB1D  4A       LSR
-EB1E  53       .byte $53
-EB1F  52 00    EOR ($00)
+BB0F  4A       LSR
+BB10  53       .byte $53
+BB11  52 00    EOR ($00)
 
 mn_LDA:
-EB21  4C 44 41 JMP L4144
-EB24  00       BRK
+BB13  4C 44 41 JMP L4144
+BB16  00       BRK
 
 mn_LDX:
-EB25  4C 44 58 JMP L5844
-EB28  00       BRK
+BB17  4C 44 58 JMP L5844
+BB1A  00       BRK
 
 mn_LDY:
-EB29  4C 44 59 JMP L5944
-EB2C  00       BRK
+BB1B  4C 44 59 JMP L5944
+BB1E  00       BRK
 
 mn_LSR:
-EB2D  4C 53 52 JMP L5253
-EB30  00       BRK
+BB1F  4C 53 52 JMP L5253
+BB22  00       BRK
 
 mn_NOP:
-EB31  4E 4F 50 LSR $504F
-EB34  00       BRK
+BB23  4E 4F 50 LSR $504F
+BB26  00       BRK
 
 mn_ORA:
-EB35  4F 52 41 BBR4 $52,mn_STA
-EB38  00       BRK
+BB27  4F 52 41 BBR4 $52,mn_STA
+BB2A  00       BRK
 
 mn_PHA:
-EB39  50 48    BVC LEB83
-EB3B  41 00    EOR ($00,X)
+BB2B  50 48    BVC LBB75
+BB2D  41 00    EOR ($00,X)
 
 mn_PHP:
-EB3D  50 48    BVC LEB87
-EB3F  50 00    BVC mn_PHX
+BB2F  50 48    BVC LBB79
+BB31  50 00    BVC mn_PHX
 
 mn_PHX:
-EB41  50 48    BVC LEB8B
-EB43  58       CLI
-EB44  00       BRK
+BB33  50 48    BVC LBB7D
+BB35  58       CLI
+BB36  00       BRK
 
 mn_PHY:
-EB45  50 48    BVC LEB8F
-EB47  59 00 50 EOR $5000,Y
-EB4A  4C 41 00 JMP L0041
+BB37  50 48    BVC LBB81
+BB39  59 00 50 EOR $5000,Y
+BB3C  4C 41 00 JMP L0041
 
 mn_PLP:
-EB4D  50 4C    BVC LEB9B
-EB4F  50 00    BVC mn_PLX
+BB3F  50 4C    BVC LBB8D
+BB41  50 00    BVC mn_PLX
 
 mn_PLX:
-EB51  50 4C    BVC LEB9F
-EB53  58       CLI
-EB54  00       BRK
+BB43  50 4C    BVC LBB91
+BB45  58       CLI
+BB46  00       BRK
 
 mn_PLY:
-EB55  50 4C    BVC LEBA3
-EB57  59 00 52 EOR $5200,Y
-EB5A  4F 4C 00 BBR4 $4C,mn_ROR
+BB47  50 4C    BVC LBB95
+BB49  59 00 52 EOR $5200,Y
+BB4C  4F 4C 00 BBR4 $4C,mn_ROR
 
 mn_ROR:
-EB5D  52 4F    EOR ($4F)
-EB5F  52 00    EOR ($00)
+BB4F  52 4F    EOR ($4F)
+BB51  52 00    EOR ($00)
 
 mn_RTI:
-EB61  52 54    EOR ($54)
-EB63  49 00    EOR #$00
+BB53  52 54    EOR ($54)
+BB55  49 00    EOR #$00
 
 mn_RTS:
-EB65  52 54    EOR ($54)
-EB67  53       .byte $53
-EB68  00       BRK
+BB57  52 54    EOR ($54)
+BB59  53       .byte $53
+BB5A  00       BRK
 
 mn_SBC:
-EB69  53       .byte $53
-EB6A  42       .byte $42
-EB6B  43       .byte $43
-EB6C  00       BRK
+BB5B  53       .byte $53
+BB5C  42       .byte $42
+BB5D  43       .byte $43
+BB5E  00       BRK
 
 mn_SEC:
-EB6D  53       .byte $53
-EB6E  45 43    EOR $43
-EB70  00       BRK
+BB5F  53       .byte $53
+BB60  45 43    EOR $43
+BB62  00       BRK
 
 mn_SED:
-EB71  53       .byte $53
-EB72  45 44    EOR $44
-EB74  00       BRK
+BB63  53       .byte $53
+BB64  45 44    EOR $44
+BB66  00       BRK
 
 mn_SEI:
-EB75  53       .byte $53
-EB76  45 49    EOR $49
-EB78  00       BRK
+BB67  53       .byte $53
+BB68  45 49    EOR $49
+BB6A  00       BRK
 
 mn_STA:
-EB79  53       .byte $53
-EB7A  54       .byte $54
-EB7B  41 00    EOR ($00,X)
+BB6B  53       .byte $53
+BB6C  54       .byte $54
+BB6D  41 00    EOR ($00,X)
 
 mn_STP:
-EB7D  53       .byte $53
-EB7E  54       .byte $54
-EB7F  50 00    BVC mn_STX
+BB6F  53       .byte $53
+BB70  54       .byte $54
+BB71  50 00    BVC mn_STX
 
 mn_STX:
-EB81  53       .byte $53
-EB82  54       .byte $54
+BB73  53       .byte $53
+BB74  54       .byte $54
 
-LEB83:
-EB83  58       CLI
-EB84  00       BRK
+LBB75:
+BB75  58       CLI
+BB76  00       BRK
 
 mn_STY:
-EB85  53       .byte $53
-EB86  54       .byte $54
+BB77  53       .byte $53
+BB78  54       .byte $54
 
-LEB87:
-EB87  59 00 53 EOR $5300,Y
-EB8A  54       .byte $54
+LBB79:
+BB79  59 00 53 EOR $5300,Y
+BB7C  54       .byte $54
 
-LEB8B:
-EB8B  5A       PHY
-EB8C  00       BRK
+LBB7D:
+BB7D  5A       PHY
+BB7E  00       BRK
 
 mn_TAX:
-EB8D  54       .byte $54
-EB8E  41 58    EOR ($58,X)
-EB90  00       BRK
+BB7F  54       .byte $54
+BB80  41 58    EOR ($58,X)
+BB82  00       BRK
 
 mn_TAY:
-EB91  54       .byte $54
-EB92  41 59    EOR ($59,X)
-EB94  00       BRK
+BB83  54       .byte $54
+BB84  41 59    EOR ($59,X)
+BB86  00       BRK
 
 mn_TRB:
-EB95  54       .byte $54
-EB96  52 42    EOR ($42)
-EB98  00       BRK
+BB87  54       .byte $54
+BB88  52 42    EOR ($42)
+BB8A  00       BRK
 
 mn_TSB:
-EB99  54       .byte $54
-EB9A  53       .byte $53
+BB8B  54       .byte $54
+BB8C  53       .byte $53
 
-LEB9B:
-EB9B  42       .byte $42
-EB9C  00       BRK
+LBB8D:
+BB8D  42       .byte $42
+BB8E  00       BRK
 
 mn_TSX:
-EB9D  54       .byte $54
-EB9E  53       .byte $53
+BB8F  54       .byte $54
+BB90  53       .byte $53
 
-LEB9F:
-EB9F  58       CLI
-EBA0  00       BRK
+LBB91:
+BB91  58       CLI
+BB92  00       BRK
 
 mn_TXA:
-EBA1  54       .byte $54
-EBA2  58       CLI
+BB93  54       .byte $54
+BB94  58       CLI
 
-LEBA3:
-EBA3  41 00    EOR ($00,X)
+LBB95:
+BB95  41 00    EOR ($00,X)
 
 mn_TXS:
-EBA5  54       .byte $54
-EBA6  58       CLI
-EBA7  53       .byte $53
-EBA8  00       BRK
+BB97  54       .byte $54
+BB98  58       CLI
+BB99  53       .byte $53
+BB9A  00       BRK
 
 mn_TYA:
-EBA9  54       .byte $54
-EBAA  59 41 00 EOR $0041,Y
+BB9B  54       .byte $54
+BB9C  59 41 00 EOR $0041,Y
 
 mn_WAI:
-EBAD  57 41    RMB5 $41
-EBAF  49 00    EOR #$00
+BB9F  57 41    RMB5 $41
+BBA1  49 00    EOR #$00
 
 mn_RMB0:
-EBB1  52 4D    EOR ($4D)
-EBB3  42       .byte $42
-EBB4  30 00    BMI mn_RMB1
+BBA3  52 4D    EOR ($4D)
+BBA5  42       .byte $42
+BBA6  30 00    BMI mn_RMB1
 
 mn_RMB1:
-EBB6  52 4D    EOR ($4D)
-EBB8  42       .byte $42
-EBB9  31 00    AND ($00),Y
+BBA8  52 4D    EOR ($4D)
+BBAA  42       .byte $42
+BBAB  31 00    AND ($00),Y
 
 mn_RMB2:
-EBBB  52 4D    EOR ($4D)
-EBBD  42       .byte $42
-EBBE  32 00    AND ($00)
+BBAD  52 4D    EOR ($4D)
+BBAF  42       .byte $42
+BBB0  32 00    AND ($00)
 
 mn_RMB3:
-EBC0  52 4D    EOR ($4D)
-EBC2  42       .byte $42
-EBC3  33       .byte $33
-EBC4  00       BRK
+BBB2  52 4D    EOR ($4D)
+BBB4  42       .byte $42
+BBB5  33       .byte $33
+BBB6  00       BRK
 
 mn_RMB4:
-EBC5  52 4D    EOR ($4D)
-EBC7  42       .byte $42
-EBC8  34 00    BIT $00,X
+BBB7  52 4D    EOR ($4D)
+BBB9  42       .byte $42
+BBBA  34 00    BIT $00,X
 
 mn_RMB5:
-EBCA  52 4D    EOR ($4D)
-EBCC  42       .byte $42
-EBCD  35 00    AND $00,X
+BBBC  52 4D    EOR ($4D)
+BBBE  42       .byte $42
+BBBF  35 00    AND $00,X
 
 mn_RMB6:
-EBCF  52 4D    EOR ($4D)
-EBD1  42       .byte $42
-EBD2  36 00    ROL $00,X
+BBC1  52 4D    EOR ($4D)
+BBC3  42       .byte $42
+BBC4  36 00    ROL $00,X
 
 mn_RMB7:
-EBD4  52 4D    EOR ($4D)
-EBD6  42       .byte $42
-EBD7  37 00    RMB3 $00
+BBC6  52 4D    EOR ($4D)
+BBC8  42       .byte $42
+BBC9  37 00    RMB3 $00
 
 mn_SMB0:
-EBD9  53       .byte $53
-EBDA  4D 42 30 EOR $3042
-EBDD  00       BRK
+BBCB  53       .byte $53
+BBCC  4D 42 30 EOR $3042
+BBCF  00       BRK
 
 mn_SMB1:
-EBDE  53       .byte $53
-EBDF  4D 42 31 EOR $3142
-EBE2  00       BRK
+BBD0  53       .byte $53
+BBD1  4D 42 31 EOR $3142
+BBD4  00       BRK
 
 mn_SMB2:
-EBE3  53       .byte $53
-EBE4  4D 42 32 EOR $3242
-EBE7  00       BRK
+BBD5  53       .byte $53
+BBD6  4D 42 32 EOR $3242
+BBD9  00       BRK
 
 mn_SMB3:
-EBE8  53       .byte $53
-EBE9  4D 42 33 EOR $3342
-EBEC  00       BRK
+BBDA  53       .byte $53
+BBDB  4D 42 33 EOR $3342
+BBDE  00       BRK
 
 mn_SMB4:
-EBED  53       .byte $53
-EBEE  4D 42 34 EOR $3442
-EBF1  00       BRK
+BBDF  53       .byte $53
+BBE0  4D 42 34 EOR $3442
+BBE3  00       BRK
 
 mn_SMB5:
-EBF2  53       .byte $53
-EBF3  4D 42 35 EOR $3542
-EBF6  00       BRK
+BBE4  53       .byte $53
+BBE5  4D 42 35 EOR $3542
+BBE8  00       BRK
 
 mn_SMB6:
-EBF7  53       .byte $53
-EBF8  4D 42 36 EOR $3642
-EBFB  00       BRK
+BBE9  53       .byte $53
+BBEA  4D 42 36 EOR $3642
+BBED  00       BRK
 
 mn_SMB7:
-EBFC  53       .byte $53
-EBFD  4D 42 37 EOR $3742
-EC00  00       BRK
+BBEE  53       .byte $53
+BBEF  4D 42 37 EOR $3742
+BBF2  00       BRK
 
 mn_BBR0:
-EC01  42       .byte $42
-EC02  42       .byte $42
-EC03  52 30    EOR ($30)
-EC05  00       BRK
+BBF3  42       .byte $42
+BBF4  42       .byte $42
+BBF5  52 30    EOR ($30)
+BBF7  00       BRK
 
 mn_BBR1:
-EC06  42       .byte $42
-EC07  42       .byte $42
-EC08  52 31    EOR ($31)
-EC0A  00       BRK
+BBF8  42       .byte $42
+BBF9  42       .byte $42
+BBFA  52 31    EOR ($31)
+BBFC  00       BRK
 
 mn_BBR2:
-EC0B  42       .byte $42
-EC0C  42       .byte $42
-EC0D  52 32    EOR ($32)
-EC0F  00       BRK
+BBFD  42       .byte $42
+BBFE  42       .byte $42
+BBFF  52 32    EOR ($32)
+BC01  00       BRK
 
 mn_BBR3:
-EC10  42       .byte $42
-EC11  42       .byte $42
-EC12  52 33    EOR ($33)
-EC14  00       BRK
+BC02  42       .byte $42
+BC03  42       .byte $42
+BC04  52 33    EOR ($33)
+BC06  00       BRK
 
 mn_BBR4:
-EC15  42       .byte $42
-EC16  42       .byte $42
-EC17  52 34    EOR ($34)
-EC19  00       BRK
+BC07  42       .byte $42
+BC08  42       .byte $42
+BC09  52 34    EOR ($34)
+BC0B  00       BRK
 
 mn_BBR5:
-EC1A  42       .byte $42
-EC1B  42       .byte $42
-EC1C  52 35    EOR ($35)
-EC1E  00       BRK
+BC0C  42       .byte $42
+BC0D  42       .byte $42
+BC0E  52 35    EOR ($35)
+BC10  00       BRK
 
 mn_BBR6:
-EC1F  42       .byte $42
-EC20  42       .byte $42
-EC21  52 36    EOR ($36)
-EC23  00       BRK
+BC11  42       .byte $42
+BC12  42       .byte $42
+BC13  52 36    EOR ($36)
+BC15  00       BRK
 
 mn_BBR7:
-EC24  42       .byte $42
-EC25  42       .byte $42
-EC26  52 37    EOR ($37)
-EC28  00       BRK
+BC16  42       .byte $42
+BC17  42       .byte $42
+BC18  52 37    EOR ($37)
+BC1A  00       BRK
 
 mn_BBS0:
-EC29  42       .byte $42
-EC2A  42       .byte $42
-EC2B  53       .byte $53
-EC2C  30 00    BMI mn_BBS1
+BC1B  42       .byte $42
+BC1C  42       .byte $42
+BC1D  53       .byte $53
+BC1E  30 00    BMI mn_BBS1
 
 mn_BBS1:
-EC2E  42       .byte $42
-EC2F  42       .byte $42
-EC30  53       .byte $53
-EC31  31 00    AND ($00),Y
+BC20  42       .byte $42
+BC21  42       .byte $42
+BC22  53       .byte $53
+BC23  31 00    AND ($00),Y
 
 mn_BBS2:
-EC33  42       .byte $42
-EC34  42       .byte $42
-EC35  53       .byte $53
-EC36  32 00    AND ($00)
+BC25  42       .byte $42
+BC26  42       .byte $42
+BC27  53       .byte $53
+BC28  32 00    AND ($00)
 
 mn_BBS3:
-EC38  42       .byte $42
-EC39  42       .byte $42
-EC3A  53       .byte $53
-EC3B  33       .byte $33
-EC3C  00       BRK
+BC2A  42       .byte $42
+BC2B  42       .byte $42
+BC2C  53       .byte $53
+BC2D  33       .byte $33
+BC2E  00       BRK
 
 mn_BBS4:
-EC3D  42       .byte $42
-EC3E  42       .byte $42
-EC3F  53       .byte $53
-EC40  34 00    BIT $00,X
+BC2F  42       .byte $42
+BC30  42       .byte $42
+BC31  53       .byte $53
+BC32  34 00    BIT $00,X
 
 mn_BBS5:
-EC42  42       .byte $42
-EC43  42       .byte $42
-EC44  53       .byte $53
-EC45  35 00    AND $00,X
+BC34  42       .byte $42
+BC35  42       .byte $42
+BC36  53       .byte $53
+BC37  35 00    AND $00,X
 
 mn_BBS6:
-EC47  42       .byte $42
-EC48  42       .byte $42
-EC49  53       .byte $53
-EC4A  36 00    ROL $00,X
+BC39  42       .byte $42
+BC3A  42       .byte $42
+BC3B  53       .byte $53
+BC3C  36 00    ROL $00,X
 
 mn_BBS7:
-EC4C  42       .byte $42
-EC4D  42       .byte $42
-EC4E  53       .byte $53
-EC4F  37 00    RMB3 $00
+BC3E  42       .byte $42
+BC3F  42       .byte $42
+BC40  53       .byte $53
+BC41  37 00    RMB3 $00
 
 mode_table:
-EC51  00       BRK
-EC52  0A       ASL
-EC53  10 10    BPL LEC65
-EC55  03       .byte $03
-EC56  03       .byte $03
-EC57  03       .byte $03
-EC58  03       .byte $03
-EC59  00       BRK
-EC5A  02       .byte $02
-EC5B  01 10    ORA ($10,X)
-EC5D  06 06    ASL $06
-EC5F  06 0E    ASL $0E
-EC61  0D 0B 0C ORA $0C0B
-EC64  10 03    BPL LEC69
-EC66  04 04    TSB $04
-EC68  03       .byte $03
+BC43  00       BRK
+BC44  0A       ASL
+BC45  10 10    BPL LBC57
+BC47  03       .byte $03
+BC48  03       .byte $03
+BC49  03       .byte $03
+BC4A  03       .byte $03
+BC4B  00       BRK
+BC4C  02       .byte $02
+BC4D  01 10    ORA ($10,X)
+BC4F  06 06    ASL $06
+BC51  06 0E    ASL $0E
+BC53  0D 0B 0C ORA $0C0B
+BC56  10 03    BPL LBC5B
+BC58  04 04    TSB $04
+BC5A  03       .byte $03
 
-LEC69:
-EC69  00       BRK
-EC6A  08       PHP
-EC6B  01 10    ORA ($10,X)
-EC6D  06 07    ASL $07
-EC6F  07 0E    RMB0 $0E
-EC71  06 0A    ASL $0A
-EC73  10 10    BPL LEC85
-EC75  03       .byte $03
-EC76  03       .byte $03
-EC77  03       .byte $03
-EC78  03       .byte $03
-EC79  00       BRK
-EC7A  02       .byte $02
-EC7B  01 10    ORA ($10,X)
-EC7D  06 06    ASL $06
-EC7F  06 0E    ASL $0E
-EC81  0D 0B 0C ORA $0C0B
-EC84  10 04    BPL LEC8A
-EC86  04 04    TSB $04
-EC88  03       .byte $03
-EC89  00       BRK
+LBC5B:
+BC5B  00       BRK
+BC5C  08       PHP
+BC5D  01 10    ORA ($10,X)
+BC5F  06 07    ASL $07
+BC61  07 0E    RMB0 $0E
+BC63  06 0A    ASL $0A
+BC65  10 10    BPL LBC77
+BC67  03       .byte $03
+BC68  03       .byte $03
+BC69  03       .byte $03
+BC6A  03       .byte $03
+BC6B  00       BRK
+BC6C  02       .byte $02
+BC6D  01 10    ORA ($10,X)
+BC6F  06 06    ASL $06
+BC71  06 0E    ASL $0E
+BC73  0D 0B 0C ORA $0C0B
+BC76  10 04    BPL LBC7C
+BC78  04 04    TSB $04
+BC7A  03       .byte $03
+BC7B  00       BRK
 
-LEC8A:
-EC8A  08       PHP
-EC8B  01 10    ORA ($10,X)
-EC8D  07 07    RMB0 $07
-EC8F  07 0E    RMB0 $0E
-EC91  00       BRK
-EC92  0A       ASL
-EC93  10 10    BPL LECA5
-EC95  10 03    BPL LEC9A
-EC97  03       .byte $03
-EC98  03       .byte $03
-EC99  00       BRK
+LBC7C:
+BC7C  08       PHP
+BC7D  01 10    ORA ($10,X)
+BC7F  07 07    RMB0 $07
+BC81  07 0E    RMB0 $0E
+BC83  00       BRK
+BC84  0A       ASL
+BC85  10 10    BPL LBC97
+BC87  10 03    BPL LBC8C
+BC89  03       .byte $03
+BC8A  03       .byte $03
+BC8B  00       BRK
 
-LEC9A:
-EC9A  02       .byte $02
-EC9B  01 10    ORA ($10,X)
-EC9D  06 06    ASL $06
-EC9F  06 0E    ASL $0E
-ECA1  0D 0B 0C ORA $0C0B
-ECA4  10 10    BPL LECB6
-ECA6  04 04    TSB $04
-ECA8  03       .byte $03
-ECA9  00       BRK
-ECAA  08       PHP
-ECAB  00       BRK
-ECAC  10 10    BPL LECBE
-ECAE  07 07    RMB0 $07
-ECB0  0E 00 0A ASL $0A00
-ECB3  10 10    BPL LECC5
-ECB5  03       .byte $03
+LBC8C:
+BC8C  02       .byte $02
+BC8D  01 10    ORA ($10,X)
+BC8F  06 06    ASL $06
+BC91  06 0E    ASL $0E
+BC93  0D 0B 0C ORA $0C0B
+BC96  10 10    BPL LBCA8
+BC98  04 04    TSB $04
+BC9A  03       .byte $03
+BC9B  00       BRK
+BC9C  08       PHP
+BC9D  00       BRK
+BC9E  10 10    BPL LBCB0
+BCA0  07 07    RMB0 $07
+BCA2  0E 00 0A ASL $0A00
+BCA5  10 10    BPL LBCB7
+BCA7  03       .byte $03
 
-LECB6:
-ECB6  03       .byte $03
-ECB7  03       .byte $03
-ECB8  03       .byte $03
-ECB9  00       BRK
-ECBA  02       .byte $02
-ECBB  01 10    ORA ($10,X)
-ECBD  09 06    ORA #$06
-ECBF  06 0E    ASL $0E
-ECC1  0D 0B 0C ORA $0C0B
-ECC4  10 04    BPL LECCA
-ECC6  04 04    TSB $04
-ECC8  03       .byte $03
-ECC9  00       BRK
+LBCA8:
+BCA8  03       .byte $03
+BCA9  03       .byte $03
+BCAA  03       .byte $03
+BCAB  00       BRK
+BCAC  02       .byte $02
+BCAD  01 10    ORA ($10,X)
+BCAF  09 06    ORA #$06
+BCB1  06 0E    ASL $0E
+BCB3  0D 0B 0C ORA $0C0B
+BCB6  10 04    BPL LBCBC
+BCB8  04 04    TSB $04
+BCBA  03       .byte $03
+BCBB  00       BRK
 
-LECCA:
-ECCA  08       PHP
-ECCB  00       BRK
-ECCC  10 0F    BPL LECDD
-ECCE  07 07    RMB0 $07
-ECD0  0E 0D 0A ASL $0A0D
-ECD3  10 10    BPL LECE5
-ECD5  03       .byte $03
-ECD6  03       .byte $03
-ECD7  03       .byte $03
-ECD8  03       .byte $03
-ECD9  00       BRK
-ECDA  02       .byte $02
-ECDB  00       BRK
-ECDC  10 06    BPL LECE4
-ECDE  06 06    ASL $06
-ECE0  0E 0D 0B ASL $0B0D
-ECE3  0C 10 04 TSB $0410
-ECE6  04 05    TSB $05
-ECE8  03       .byte $03
-ECE9  00       BRK
-ECEA  08       PHP
-ECEB  00       BRK
-ECEC  10 06    BPL LECF4
-ECEE  07 07    RMB0 $07
-ECF0  0E 02 0A ASL $0A02
-ECF3  02       .byte $02
+LBCBC:
+BCBC  08       PHP
+BCBD  00       BRK
+BCBE  10 0F    BPL LBCCF
+BCC0  07 07    RMB0 $07
+BCC2  0E 0D 0A ASL $0A0D
+BCC5  10 10    BPL LBCD7
+BCC7  03       .byte $03
+BCC8  03       .byte $03
+BCC9  03       .byte $03
+BCCA  03       .byte $03
+BCCB  00       BRK
+BCCC  02       .byte $02
+BCCD  00       BRK
+BCCE  10 06    BPL LBCD6
+BCD0  06 06    ASL $06
+BCD2  0E 0D 0B ASL $0B0D
+BCD5  0C 10 04 TSB $0410
+BCD8  04 05    TSB $05
+BCDA  03       .byte $03
+BCDB  00       BRK
+BCDC  08       PHP
+BCDD  00       BRK
+BCDE  10 06    BPL LBCE6
+BCE0  07 07    RMB0 $07
+BCE2  0E 02 0A ASL $0A02
+BCE5  02       .byte $02
 
-LECF4:
-ECF4  10 03    BPL LECF9
-ECF6  03       .byte $03
-ECF7  03       .byte $03
-ECF8  03       .byte $03
+LBCE6:
+BCE6  10 03    BPL LBCEB
+BCE8  03       .byte $03
+BCE9  03       .byte $03
+BCEA  03       .byte $03
 
-LECF9:
-ECF9  00       BRK
-ECFA  02       .byte $02
-ECFB  00       BRK
-ECFC  10 06    BPL LED04
-ECFE  06 06    ASL $06
-ED00  0E 0D 0B ASL $0B0D
-ED03  0C 10 04 TSB $0410
-ED06  04 05    TSB $05
-ED08  03       .byte $03
-ED09  00       BRK
-ED0A  08       PHP
-ED0B  00       BRK
-ED0C  10 07    BPL LED15
-ED0E  07 08    RMB0 $08
-ED10  0E 02 0A ASL $0A02
-ED13  10 10    BPL LED25
+LBCEB:
+BCEB  00       BRK
+BCEC  02       .byte $02
+BCED  00       BRK
+BCEE  10 06    BPL LBCF6
+BCF0  06 06    ASL $06
+BCF2  0E 0D 0B ASL $0B0D
+BCF5  0C 10 04 TSB $0410
+BCF8  04 05    TSB $05
+BCFA  03       .byte $03
+BCFB  00       BRK
+BCFC  08       PHP
+BCFD  00       BRK
+BCFE  10 07    BPL LBD07
+BD00  07 08    RMB0 $08
+BD02  0E 02 0A ASL $0A02
+BD05  10 10    BPL LBD17
 
-LED15:
-ED15  03       .byte $03
-ED16  03       .byte $03
-ED17  03       .byte $03
-ED18  03       .byte $03
-ED19  00       BRK
-ED1A  02       .byte $02
-ED1B  00       BRK
-ED1C  00       BRK
-ED1D  06 06    ASL $06
-ED1F  06 0E    ASL $0E
-ED21  0D 0B 0C ORA $0C0B
-ED24  10 10    BPL LED36
-ED26  04 04    TSB $04
-ED28  03       .byte $03
-ED29  00       BRK
-ED2A  08       PHP
-ED2B  00       BRK
-ED2C  00       BRK
-ED2D  10 07    BPL LED36
-ED2F  07 0E    RMB0 $0E
-ED31  02       .byte $02
-ED32  0A       ASL
-ED33  10 10    BPL LED45
-ED35  03       .byte $03
+LBD07:
+BD07  03       .byte $03
+BD08  03       .byte $03
+BD09  03       .byte $03
+BD0A  03       .byte $03
+BD0B  00       BRK
+BD0C  02       .byte $02
+BD0D  00       BRK
+BD0E  00       BRK
+BD0F  06 06    ASL $06
+BD11  06 0E    ASL $0E
+BD13  0D 0B 0C ORA $0C0B
+BD16  10 10    BPL LBD28
+BD18  04 04    TSB $04
+BD1A  03       .byte $03
+BD1B  00       BRK
+BD1C  08       PHP
+BD1D  00       BRK
+BD1E  00       BRK
+BD1F  10 07    BPL LBD28
+BD21  07 0E    RMB0 $0E
+BD23  02       .byte $02
+BD24  0A       ASL
+BD25  10 10    BPL LBD37
+BD27  03       .byte $03
 
-LED36:
-ED36  03       .byte $03
-ED37  03       .byte $03
-ED38  03       .byte $03
-ED39  00       BRK
-ED3A  02       .byte $02
-ED3B  00       BRK
-ED3C  10 06    BPL LED44
-ED3E  06 06    ASL $06
-ED40  0E 0D 0B ASL $0B0D
-ED43  0C 10 10 TSB $1010
-ED46  04 04    TSB $04
-ED48  03       .byte $03
-ED49  00       BRK
-ED4A  08       PHP
-ED4B  00       BRK
-ED4C  10 10    BPL LED5E
-ED4E  07 07    RMB0 $07
-ED50  0E 01 01 ASL $0101
-ED53  02       .byte $02
-ED54  02       .byte $02
-ED55  02       .byte $02
-ED56  02       .byte $02
-ED57  03       .byte $03
-ED58  03       .byte $03
-ED59  03       .byte $03
-ED5A  03       .byte $03
-ED5B  02       .byte $02
-ED5C  02       .byte $02
-ED5D  02       .byte $02
+LBD28:
+BD28  03       .byte $03
+BD29  03       .byte $03
+BD2A  03       .byte $03
+BD2B  00       BRK
+BD2C  02       .byte $02
+BD2D  00       BRK
+BD2E  10 06    BPL LBD36
+BD30  06 06    ASL $06
+BD32  0E 0D 0B ASL $0B0D
+BD35  0C 10 10 TSB $1010
+BD38  04 04    TSB $04
+BD3A  03       .byte $03
+BD3B  00       BRK
+BD3C  08       PHP
+BD3D  00       BRK
+BD3E  10 10    BPL LBD50
+BD40  07 07    RMB0 $07
+BD42  0E 01 01 ASL $0101
+BD45  02       .byte $02
+BD46  02       .byte $02
+BD47  02       .byte $02
+BD48  02       .byte $02
+BD49  03       .byte $03
+BD4A  03       .byte $03
+BD4B  03       .byte $03
+BD4C  03       .byte $03
+BD4D  02       .byte $02
+BD4E  02       .byte $02
+BD4F  02       .byte $02
 
-LED5E:
-ED5E  02       .byte $02
-ED5F  03       .byte $03
-ED60  03       .byte $03
-ED61  01 A5    ORA ($A5,X)
-ED63  EA       NOP
-ED64  A9 EA    LDA #$EA
-ED66  AD EA B1 LDA $B1EA
-ED69  EA       NOP
-ED6A  B5 EA    LDA $EA,X
-ED6C  B9 EA BD LDA $BDEA,Y
-ED6F  EA       NOP
-ED70  C1 EA    CMP ($EA,X)
-ED72  C5 EA    CMP $EA
-ED74  C9 EA    CMP #$EA
-ED76  CD EA D1 CMP $D1EA
-ED79  EA       NOP
-ED7A  D5 EA    CMP $EA,X
-ED7C  D9 EA DD CMP $DDEA,Y
-ED7F  EA       NOP
-ED80  E1 EA    SBC ($EA,X)
-ED82  E5 EA    SBC $EA
-ED84  E9 EA    SBC #$EA
-ED86  ED EA F1 SBC $F1EA
-ED89  EA       NOP
-ED8A  F5 EA    SBC $EA,X
-ED8C  F9 EA FD SBC $FDEA,Y
-ED8F  EA       NOP
-ED90  01 EB    ORA ($EB,X)
-ED92  05 EB    ORA $EB
-ED94  09 EB    ORA #$EB
-ED96  0D EB 11 ORA $11EB
-ED99  EB       NOP
-ED9A  15 EB    ORA $EB,X
-ED9C  19 EB 1D ORA $1DEB,Y
-ED9F  EB       NOP
-EDA0  21 EB    AND ($EB,X)
-EDA2  25 EB    AND $EB
-EDA4  29 EB    AND #$EB
-EDA6  2D EB 31 AND $31EB
-EDA9  EB       NOP
-EDAA  35 EB    AND $EB,X
-EDAC  39 EB 3D AND $3DEB,Y
-EDAF  EB       NOP
-EDB0  41 EB    EOR ($EB,X)
-EDB2  45 EB    EOR $EB
-EDB4  49 EB    EOR #$EB
-EDB6  4D EB 51 EOR $51EB
-EDB9  EB       NOP
-EDBA  55 EB    EOR $EB,X
-EDBC  59 EB 5D EOR $5DEB,Y
-EDBF  EB       NOP
-EDC0  61 EB    ADC ($EB,X)
-EDC2  65 EB    ADC $EB
-EDC4  69 EB    ADC #$EB
-EDC6  6D EB 71 ADC $71EB
-EDC9  EB       NOP
-EDCA  75 EB    ADC $EB,X
-EDCC  79 EB 7D ADC $7DEB,Y
-EDCF  EB       NOP
-EDD0  81 EB    STA ($EB,X)
-EDD2  85 EB    STA $EB
-EDD4  89 EB    BIT #$EB
-EDD6  8D EB 91 STA $91EB
-EDD9  EB       NOP
-EDDA  95 EB    STA $EB,X
-EDDC  99 EB 9D STA $9DEB,Y
-EDDF  EB       NOP
-EDE0  A1 EB    LDA ($EB,X)
-EDE2  A5 EB    LDA $EB
-EDE4  A9 EB    LDA #$EB
-EDE6  AD EB B1 LDA $B1EB
-EDE9  EB       NOP
-EDEA  B6 EB    LDX $EB,Y
-EDEC  BB       .byte $BB
-EDED  EB       NOP
-EDEE  C0 EB    CPY #$EB
-EDF0  C5 EB    CMP $EB
-EDF2  CA       DEX
-EDF3  EB       NOP
-EDF4  CF EB D4 BBS4 $EB,LEDCB
-EDF7  EB       NOP
-EDF8  D9 EB DE CMP $DEEB,Y
-EDFB  EB       NOP
-EDFC  E3       .byte $E3
-EDFD  EB       NOP
-EDFE  E8       INX
-EDFF  EB       NOP
-EE00  ED EB F2 SBC $F2EB
-EE03  EB       NOP
-EE04  F7 EB    SMB7 $EB
-EE06  FC       .byte $FC
-EE07  EB       NOP
-EE08  01 EC    ORA ($EC,X)
-EE0A  06 EC    ASL $EC
-EE0C  0B       .byte $0B
-EE0D  EC 10 EC CPX mn_BBR3
-EE10  15 EC    ORA $EC,X
-EE12  1A       INC
-EE13  EC 1F EC CPX mn_BBR6
-EE16  24 EC    BIT $EC
-EE18  29 EC    AND #$EC
-EE1A  2E EC 33 ROL $33EC
-EE1D  EC 38 EC CPX mn_BBS3
-EE20  3D EC 42 AND $42EC,X
-EE23  EC 47 EC CPX mn_BBS6
-EE26  4C EC 0C JMP L0CEC
-EE29  24 00    BIT $00
-EE2B  00       BRK
-EE2C  3D 24 03 AND $0324,X
-EE2F  43       .byte $43
-EE30  26 24    ROL $24
-EE32  03       .byte $03
-EE33  00       BRK
-EE34  3D 24 03 AND $0324,X
-EE37  53       .byte $53
-EE38  0A       ASL
-EE39  24 24    BIT $24
-EE3B  00       BRK
-EE3C  3C 24 03 BIT $0324,X
-EE3F  44       .byte $44
-EE40  0F 24 1A BBR0 $24,LEE5D
-EE43  00       BRK
-EE44  3C 24 03 BIT $0324,X
-EE47  54       .byte $54
-EE48  1E 02 00 ASL $0002,X
-EE4B  00       BRK
-EE4C  07 02    RMB0 $02
-EE4E  2D 45 2A AND $2A45
-EE51  02       .byte $02
-EE52  2D 00 07 AND $0700
-EE55  02       .byte $02
-EE56  2D 55 08 AND $0855
-EE59  02       .byte $02
-EE5A  02       .byte $02
-EE5B  00       BRK
-EE5C  07 02    RMB0 $02
-EE5E  2D 46 32 AND $3246
-EE61  02       .byte $02
-EE62  16 00    ASL $00,X
-EE64  07 02    RMB0 $02
-EE66  2D 56 2F AND $2F56
-EE69  19 00 00 ORA $0000,Y
-EE6C  00       BRK
-EE6D  19 22 47 ORA $4722,Y
-EE70  25 19    AND $19
-EE72  22       .byte $22
-EE73  00       BRK
-EE74  1D 19 22 ORA $2219,X
-EE77  57 0D    RMB5 $0D
-EE79  19 19 00 ORA $0019,Y
-EE7C  00       BRK
-EE7D  19 22 48 ORA $4822,Y
-EE80  11 19    ORA ($19),Y
-EE82  28       PLP
-EE83  00       BRK
-EE84  00       BRK
-EE85  19 22 58 ORA $5822,Y
-EE88  30 01    BMI LEE8B
-EE8A  00       BRK
+LBD50:
+BD50  02       .byte $02
+BD51  03       .byte $03
+BD52  03       .byte $03
+BD53  01 97    ORA ($97,X)
+BD55  BA       TSX
+BD56  9B       .byte $9B
+BD57  BA       TSX
+BD58  9F BA A3 BBS1 $BA,LBCFE
+BD5B  BA       TSX
+BD5C  A7 BA    SMB2 $BA
+BD5E  AB       .byte $AB
+BD5F  BA       TSX
+BD60  AF BA B3 BBS2 $BA,LBD16
+BD63  BA       TSX
+BD64  B7 BA    SMB3 $BA
+BD66  BB       .byte $BB
+BD67  BA       TSX
+BD68  BF BA C3 BBS3 $BA,LBD2E
+BD6B  BA       TSX
+BD6C  C7 BA    SMB4 $BA
+BD6E  CB       WAI
+BD6F  BA       TSX
+BD70  CF BA D3 BBS4 $BA,LBD46
+BD73  BA       TSX
+BD74  D7 BA    SMB5 $BA
+BD76  DB       STP
+BD77  BA       TSX
+BD78  DF BA E3 BBS5 $BA,LBD5E
+BD7B  BA       TSX
+BD7C  E7 BA    SMB6 $BA
+BD7E  EB       NOP
+BD7F  BA       TSX
+BD80  EF BA F3 BBS6 $BA,LBD76
+BD83  BA       TSX
+BD84  F7 BA    SMB7 $BA
+BD86  FB       .byte $FB
+BD87  BA       TSX
+BD88  FF BA 03 BBS7 $BA,LBD8E
+BD8B  BB       .byte $BB
+BD8C  07 BB    RMB0 $BB
 
-LEE8B:
-EE8B  00       BRK
-EE8C  39 01 2E AND $2E01,Y
-EE8F  49 29    EOR #$29
-EE91  01 2E    ORA ($2E,X)
-EE93  00       BRK
-EE94  1D 01 2E ORA $2E01,X
-EE97  59 0E 01 EOR $010E,Y
-EE9A  01 00    ORA ($00,X)
-EE9C  39 01 2E AND $2E01,Y
-EE9F  4A       LSR
-EEA0  34 01    BIT $01,X
-EEA2  2C 00 1D BIT $1D00
-EEA5  01 2E    ORA ($2E,X)
-EEA7  5A       PHY
-EEA8  0B       .byte $0B
-EEA9  35 00    AND $00,X
-EEAB  00       BRK
-EEAC  38       SEC
-EEAD  35 37    AND $37,X
-EEAF  4B       .byte $4B
-EEB0  18       CLC
-EEB1  07 3F    RMB0 $3F
-EEB3  00       BRK
-EEB4  38       SEC
-EEB5  35 37    AND $37,X
-EEB7  5B       .byte $5B
-EEB8  04 35    TSB $35
-EEBA  35 00    AND $00,X
-EEBC  38       SEC
-EEBD  35 37    AND $37,X
-EEBF  4C 41 35 JMP L3541
-EEC2  40       RTI
-EEC3  00       BRK
-EEC4  39 35 39 AND $3935,Y
-EEC7  5C       .byte $5C
-EEC8  21 1F    AND ($1F,X)
-EECA  20 00 21 JSR L2100
-EECD  1F 20 4D BBR1 $20,LEF1D
-EED0  3B       .byte $3B
-EED1  1F 3A 00 BBR1 $3A,LEED4
+LBD8E:
+BD8E  0B       .byte $0B
+BD8F  BB       .byte $BB
+BD90  0F BB 13 BBR0 $BB,LBDA6
+BD93  BB       .byte $BB
+BD94  17 BB    RMB1 $BB
+BD96  1B       .byte $1B
+BD97  BB       .byte $BB
+BD98  1F BB 23 BBR1 $BB,LBDBE
+BD9B  BB       .byte $BB
+BD9C  27 BB    RMB2 $BB
+BD9E  2B       .byte $2B
+BD9F  BB       .byte $BB
+BDA0  2F BB 33 BBR2 $BB,LBDD6
+BDA3  BB       .byte $BB
+BDA4  37 BB    RMB3 $BB
 
-LEED4:
-EED4  21 1F    AND ($1F,X)
-EED6  20 5D 05 JSR L055D
-EED9  1F 1F 00 BBR1 $1F,LEEDC
+LBDA6:
+BDA6  3B       .byte $3B
+BDA7  BB       .byte $BB
+BDA8  3F BB 43 BBR3 $BB,LBDEE
+BDAB  BB       .byte $BB
+BDAC  47 BB    RMB4 $BB
+BDAE  4B       .byte $4B
+BDAF  BB       .byte $BB
+BDB0  4F BB 53 BBR4 $BB,LBE06
+BDB3  BB       .byte $BB
+BDB4  57 BB    RMB5 $BB
+BDB6  5B       .byte $5B
+BDB7  BB       .byte $BB
+BDB8  5F BB 63 BBR5 $BB,LBE1E
+BDBB  BB       .byte $BB
+BDBC  67 BB    RMB6 $BB
 
-LEEDC:
-EEDC  21 1F    AND ($1F,X)
-EEDE  20 4E 12 JSR L124E
-EEE1  1F 3E 00 BBR1 $3E,LEEE4
+LBDBE:
+BDBE  6B       .byte $6B
+BDBF  BB       .byte $BB
+BDC0  6F BB 73 BBR6 $BB,LBE36
+BDC3  BB       .byte $BB
+BDC4  77 BB    RMB7 $BB
+BDC6  7B       .byte $7B
+BDC7  BB       .byte $BB
+BDC8  7F BB 83 BBR7 $BB,LBD4E
+BDCB  BB       .byte $BB
+BDCC  87 BB    SMB0 $BB
+BDCE  8B       .byte $8B
+BDCF  BB       .byte $BB
+BDD0  8F BB 93 BBS0 $BB,LBD66
+BDD3  BB       .byte $BB
+BDD4  97 BB    SMB1 $BB
 
-LEEE4:
-EEE4  21 1F    AND ($1F,X)
-EEE6  20 5E 15 JSR L155E
-EEE9  13       .byte $13
-EEEA  00       BRK
-EEEB  00       BRK
-EEEC  15 13    ORA $13,X
-EEEE  16 4F    ASL $4F,X
-EEF0  1C 13 17 TRB $1713
-EEF3  42       .byte $42
-EEF4  15 13    ORA $13,X
-EEF6  16 5F    ASL $5F,X
-EEF8  09 13    ORA #$13
-EEFA  13       .byte $13
-EEFB  00       BRK
-EEFC  00       BRK
-EEFD  13       .byte $13
-EEFE  16 50    ASL $50,X
-EF00  10 13    BPL LEF15
-EF02  27 36    RMB2 $36
-EF04  00       BRK
-EF05  13       .byte $13
-EF06  16 60    ASL $60,X
-EF08  14 31    TRB $31
-EF0A  00       BRK
-EF0B  00       BRK
-EF0C  14 31    TRB $31
-EF0E  1A       INC
-EF0F  51 1B    EOR ($1B),Y
-EF11  31 23    AND ($23),Y
-EF13  00       BRK
-EF14  14 31    TRB $31
-EF16  1A       INC
-EF17  61 06    ADC ($06,X)
-EF19  31 31    AND ($31),Y
-EF1B  00       BRK
-EF1C  00       BRK
+LBDD6:
+BDD6  9B       .byte $9B
+BDD7  BB       .byte $BB
+BDD8  9F BB A3 BBS1 $BB,LBD7E
+BDDB  BB       .byte $BB
+BDDC  A8       TAY
+BDDD  BB       .byte $BB
+BDDE  AD BB B2 LDA $B2BB
+BDE1  BB       .byte $BB
+BDE2  B7 BB    SMB3 $BB
+BDE4  BC BB C1 LDY $C1BB,X
+BDE7  BB       .byte $BB
+BDE8  C6 BB    DEC $BB
+BDEA  CB       WAI
+BDEB  BB       .byte $BB
+BDEC  D0 BB    BNE LBDA9
 
-LEF1D:
-EF1D  31 1A    AND ($1A),Y
-EF1F  52 33    EOR ($33)
-EF21  31 2B    AND ($2B),Y
-EF23  00       BRK
-EF24  00       BRK
-EF25  31 1A    AND ($1A),Y
-EF27  62       .byte $62
+LBDEE:
+BDEE  D5 BB    CMP $BB,X
+BDF0  DA       PHX
+BDF1  BB       .byte $BB
+BDF2  DF BB E4 BBS5 $BB,LBDD9
+BDF5  BB       .byte $BB
+BDF6  E9 BB    SBC #$BB
+BDF8  EE BB F3 INC $F3BB
+BDFB  BB       .byte $BB
+BDFC  F8       SED
+BDFD  BB       .byte $BB
+BDFE  FD BB 02 SBC $02BB,X
+BE01  BC 07 BC LDY mn_BBR4,X
+BE04  0C BC 11 TSB $11BC
+BE07  BC 16 BC LDY mn_BBR7,X
+BE0A  1B       .byte $1B
+BE0B  BC 20 BC LDY mn_BBS1,X
+BE0E  25 BC    AND $BC
+BE10  2A       ROL
+BE11  BC 2F BC LDY mn_BBS4,X
+BE14  34 BC    BIT $BC,X
+BE16  39 BC 3E AND $3EBC,Y
+BE19  BC 0C 24 LDY $240C,X
+BE1C  00       BRK
+BE1D  00       BRK
+
+LBE1E:
+BE1E  3D 24 03 AND $0324,X
+BE21  43       .byte $43
+BE22  26 24    ROL $24
+BE24  03       .byte $03
+BE25  00       BRK
+BE26  3D 24 03 AND $0324,X
+BE29  53       .byte $53
+BE2A  0A       ASL
+BE2B  24 24    BIT $24
+BE2D  00       BRK
+BE2E  3C 24 03 BIT $0324,X
+BE31  44       .byte $44
+BE32  0F 24 1A BBR0 $24,LBE4F
+BE35  00       BRK
+
+LBE36:
+BE36  3C 24 03 BIT $0324,X
+BE39  54       .byte $54
+BE3A  1E 02 00 ASL $0002,X
+BE3D  00       BRK
+BE3E  07 02    RMB0 $02
+BE40  2D 45 2A AND $2A45
+BE43  02       .byte $02
+BE44  2D 00 07 AND $0700
+BE47  02       .byte $02
+BE48  2D 55 08 AND $0855
+BE4B  02       .byte $02
+BE4C  02       .byte $02
+BE4D  00       BRK
+BE4E  07 02    RMB0 $02
+BE50  2D 46 32 AND $3246
+BE53  02       .byte $02
+BE54  16 00    ASL $00,X
+BE56  07 02    RMB0 $02
+BE58  2D 56 2F AND $2F56
+BE5B  19 00 00 ORA $0000,Y
+BE5E  00       BRK
+BE5F  19 22 47 ORA $4722,Y
+BE62  25 19    AND $19
+BE64  22       .byte $22
+BE65  00       BRK
+BE66  1D 19 22 ORA $2219,X
+BE69  57 0D    RMB5 $0D
+BE6B  19 19 00 ORA $0019,Y
+BE6E  00       BRK
+BE6F  19 22 48 ORA $4822,Y
+BE72  11 19    ORA ($19),Y
+BE74  28       PLP
+BE75  00       BRK
+BE76  00       BRK
+BE77  19 22 58 ORA $5822,Y
+BE7A  30 01    BMI LBE7D
+BE7C  00       BRK
+
+LBE7D:
+BE7D  00       BRK
+BE7E  39 01 2E AND $2E01,Y
+BE81  49 29    EOR #$29
+BE83  01 2E    ORA ($2E,X)
+BE85  00       BRK
+BE86  1D 01 2E ORA $2E01,X
+BE89  59 0E 01 EOR $010E,Y
+BE8C  01 00    ORA ($00,X)
+BE8E  39 01 2E AND $2E01,Y
+BE91  4A       LSR
+BE92  34 01    BIT $01,X
+BE94  2C 00 1D BIT $1D00
+BE97  01 2E    ORA ($2E,X)
+BE99  5A       PHY
+BE9A  0B       .byte $0B
+BE9B  35 00    AND $00,X
+BE9D  00       BRK
+BE9E  38       SEC
+BE9F  35 37    AND $37,X
+BEA1  4B       .byte $4B
+BEA2  18       CLC
+BEA3  07 3F    RMB0 $3F
+BEA5  00       BRK
+BEA6  38       SEC
+BEA7  35 37    AND $37,X
+BEA9  5B       .byte $5B
+BEAA  04 35    TSB $35
+BEAC  35 00    AND $00,X
+BEAE  38       SEC
+BEAF  35 37    AND $37,X
+BEB1  4C 41 35 JMP L3541
+BEB4  40       RTI
+BEB5  00       BRK
+BEB6  39 35 39 AND $3935,Y
+BEB9  5C       .byte $5C
+BEBA  21 1F    AND ($1F,X)
+BEBC  20 00 21 JSR L2100
+BEBF  1F 20 4D BBR1 $20,LBF0F
+BEC2  3B       .byte $3B
+BEC3  1F 3A 00 BBR1 $3A,LBEC6
+
+LBEC6:
+BEC6  21 1F    AND ($1F,X)
+BEC8  20 5D 05 JSR L055D
+BECB  1F 1F 00 BBR1 $1F,LBECE
+
+LBECE:
+BECE  21 1F    AND ($1F,X)
+BED0  20 4E 12 JSR L124E
+BED3  1F 3E 00 BBR1 $3E,LBED6
+
+LBED6:
+BED6  21 1F    AND ($1F,X)
+BED8  20 5E 15 JSR L155E
+BEDB  13       .byte $13
+BEDC  00       BRK
+BEDD  00       BRK
+BEDE  15 13    ORA $13,X
+BEE0  16 4F    ASL $4F,X
+BEE2  1C 13 17 TRB $1713
+BEE5  42       .byte $42
+BEE6  15 13    ORA $13,X
+BEE8  16 5F    ASL $5F,X
+BEEA  09 13    ORA #$13
+BEEC  13       .byte $13
+BEED  00       BRK
+BEEE  00       BRK
+BEEF  13       .byte $13
+BEF0  16 50    ASL $50,X
+BEF2  10 13    BPL LBF07
+BEF4  27 36    RMB2 $36
+BEF6  00       BRK
+BEF7  13       .byte $13
+BEF8  16 60    ASL $60,X
+BEFA  14 31    TRB $31
+BEFC  00       BRK
+BEFD  00       BRK
+BEFE  14 31    TRB $31
+BF00  1A       INC
+BF01  51 1B    EOR ($1B),Y
+BF03  31 23    AND ($23),Y
+BF05  00       BRK
+BF06  14 31    TRB $31
+BF08  1A       INC
+BF09  61 06    ADC ($06,X)
+BF0B  31 31    AND ($31),Y
+BF0D  00       BRK
+BF0E  00       BRK
+
+LBF0F:
+BF0F  31 1A    AND ($1A),Y
+BF11  52 33    EOR ($33)
+BF13  31 2B    AND ($2B),Y
+BF15  00       BRK
+BF16  00       BRK
+BF17  31 1A    AND ($1A),Y
+BF19  62       .byte $62
 
 cmd_chars:
-EF28  48       PHA
-EF29  4D 3E 52 EOR $523E
-EF2C  3B       .byte $3B
-EF2D  47 44    RMB4 $44
-EF2F  41 58    EOR ($58,X)
-EF31  00       BRK
+BF1A  48       PHA
+BF1B  4D 3E 52 EOR $523E
+BF1E  3B       .byte $3B
+BF1F  47 44    RMB4 $44
+BF21  41 58    EOR ($58,X)
+BF23  00       BRK
 
 cmd_addrs:
-EF32  4B       .byte $4B
-EF33  E2       .byte $E2
-EF34  DC       .byte $DC
-EF35  E0 2C    CPX #$2C
-EF37  E1 64    SBC ($64,X)
-EF39  E1 B3    SBC ($B3,X)
-EF3B  E1 14    SBC ($14,X)
-EF3D  E2       .byte $E2
-EF3E  6E E5 DC ROR $DCE5
-EF41  E7 D9    SMB6 $D9
-EF43  E0 0C    CPX #$0C
-EF45  4D 69 63 EOR $6369
-EF48  6D 6F 6E ADC $6E6F
-EF4B  20 76 30 JSR L3076
-EF4E  2E 39 65 ROL $6539
-EF51  0D 0D 00 ORA $000D
+BF24  3D B2 CE AND $CEB2,X
+BF27  B0 1E    BCS LBF47
+BF29  B1 56    LDA ($56),Y
+BF2B  B1 A5    LDA ($A5),Y
+BF2D  B1 06    LDA ($06),Y
+BF2F  B2 60    LDA ($60)
+BF31  B5 CE    LDA $CE,X
+BF33  B7 CB    SMB3 $CB
+BF35  B0 0C    BCS LBF43
+BF37  4D 69 63 EOR $6369
+BF3A  6D 6F 6E ADC $6E6F
+BF3D  20 76 30 JSR L3076
+BF40  2E 39 66 ROL $6639
+
+LBF43:
+BF43  0D 0D 00 ORA $000D
 
 reg_header:
-EF54  20 20 20 JSR L2020
-EF57  50 43    BVC LEF9C
-EF59  20 20 41 JSR L4120
-EF5C  20 20 58 JSR L5820
-EF5F  20 20 59 JSR L5920
-EF62  20 20 53 JSR L5320
-EF65  20 20 20 JSR L2020
-EF68  4E 56 2D LSR $2D56
-EF6B  42       .byte $42
-EF6C  44       .byte $44
-EF6D  49 5A    EOR #$5A
-EF6F  43       .byte $43
-EF70  0D 00 4F ORA $4F00
-EF73  4B       .byte $4B
-EF74  0D 00 4D ORA $4D00
-EF77  20 5B 73 JSR L735B
-EF7A  20 5B 65 JSR L655B
-EF7D  5D 5D 0D EOR $0D5D,X
-EF80  3E 20 5B ROL $5B20,X
-EF83  73       .byte $73
-EF84  5D 20 62 EOR $6220,X
-EF87  74 5B    STZ $5B,X
-EF89  73       .byte $73
-EF8A  5D 0D 52 EOR $520D,X
-EF8D  0D 3B 20 ORA $203B
-EF90  50 43    BVC LEFD5
-EF92  20 41 20 JSR L2041
-EF95  58       CLI
-EF96  20 59 20 JSR L2059
-EF99  53       .byte $53
-EF9A  20 50 0D JSR L0D50
-EF9D  47 20    RMB4 $20
-EF9F  5B       .byte $5B
-EFA0  73       .byte $73
-EFA1  5D 0D 44 EOR $440D,X
-EFA4  20 5B 73 JSR L735B
-EFA7  5D 0D 41 EOR $410D,X
-EFAA  20 5B 73 JSR L735B
-EFAD  5D 20 73 EOR $7320,X
-EFB0  74 6D    STZ $6D,X
-EFB2  74 0D    STZ $0D,X
-EFB4  58       CLI
-EFB5  0D 48 0D ORA $0D48
-EFB8  00       BRK
+BF46  20 20 20 JSR L2020
+BF49  50 43    BVC LBF8E
+BF4B  20 20 41 JSR L4120
+BF4E  20 20 58 JSR L5820
+BF51  20 20 59 JSR L5920
+BF54  20 20 53 JSR L5320
+BF57  20 20 20 JSR L2020
+BF5A  4E 56 2D LSR $2D56
+BF5D  42       .byte $42
+BF5E  44       .byte $44
+BF5F  49 5A    EOR #$5A
+BF61  43       .byte $43
+BF62  0D 00 4F ORA $4F00
+BF65  4B       .byte $4B
+BF66  0D 00 4D ORA $4D00
+BF69  20 5B 73 JSR L735B
+BF6C  20 5B 65 JSR L655B
+BF6F  5D 5D 0D EOR $0D5D,X
+BF72  3E 20 5B ROL $5B20,X
+BF75  73       .byte $73
+BF76  5D 20 62 EOR $6220,X
+BF79  74 5B    STZ $5B,X
+BF7B  73       .byte $73
+BF7C  5D 0D 52 EOR $520D,X
+BF7F  0D 3B 20 ORA $203B
+BF82  50 43    BVC LBFC7
+BF84  20 41 20 JSR L2041
+BF87  58       CLI
+BF88  20 59 20 JSR L2059
+BF8B  53       .byte $53
+BF8C  20 50 0D JSR L0D50
+BF8F  47 20    RMB4 $20
+BF91  5B       .byte $5B
+BF92  73       .byte $73
+BF93  5D 0D 44 EOR $440D,X
+BF96  20 5B 73 JSR L735B
+BF99  5D 0D 41 EOR $410D,X
+BF9C  20 5B 73 JSR L735B
+BF9F  5D 20 73 EOR $7320,X
+BFA2  74 6D    STZ $6D,X
+BFA4  74 0D    STZ $0D,X
+BFA6  58       CLI
+BFA7  0D 48 0D ORA $0D48
+BFAA  00       BRK
