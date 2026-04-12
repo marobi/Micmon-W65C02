@@ -20,21 +20,21 @@ BIN         := $(TARGET).bin
 ROM         := $(TARGET).rom
 MAP         := $(TARGET).map
 LBL         := $(TARGET).lbl
-LST         := $(TARGET).LST
-TXT			:= $(TARGET).txt
+LST			:= $(TARGET).lst
+DIS			:= $(TARGET).dis
 CFG         := neo6502.cfg
 
 BASE_DIR := /cygdrive/c/Users/rien/OneDrive/source/repos
 PROJECT_DIR := /NEO6502_MMU_V3/NEO6502_MMU_V3
 INSTALL_DIR := $(BASE_DIR)$(PROJECT_DIR)/data/system
-
+INCLUDE_DIR := ../../NEOX_V1/bios
 # -------------------------------------------------
 # Default target
 # -------------------------------------------------
 
 .PHONY: all clean distclean install
 
-all: $(ROM) $(LST)
+all: $(ROM) $(DIS)
 
 # -------------------------------------------------
 # Build rules
@@ -46,15 +46,15 @@ $(ROM): $(BIN)
 $(BIN): $(OBJ) $(CFG)
 	$(LD) -C $(CFG) -vm -m $(MAP) -Ln $(LBL) -o $@ $<
 
-$(OBJ): $(SRC) micmon.asm readme.asm disasm.asm asm.asm asm_data.asm ../bios/bios.h
-	$(AS) --cpu W65C02 -g -l $(LST) -o $@ $<
+$(OBJ): $(SRC) micmon.asm readme.asm disasm.asm asm.asm asm_data.asm
+	$(AS) --cpu W65C02 -g -I $(INCLUDE_DIR) -l $(LST) -o $@ $<
 
 # -------------------------------------------------
 # Absolute listing (generated from ROM)
 # -------------------------------------------------
 
-$(LST): $(BIN) $(MAP) $(LBL)
-	$(DISASM) $(BIN) $(MAP) $(LBL) > $(TXT)
+$(DIS): $(BIN) $(MAP) $(LBL)
+	$(DISASM) $(BIN) $(MAP) $(LBL) > $(DIS)
 
 # -------------------------------------------------
 # Install
@@ -68,7 +68,7 @@ install: $(ROM)
 # -------------------------------------------------
 
 clean:
-	$(RM) *.o *.map *.lbl *.bin *.lst *.txt
+	$(RM) *.o *.map *.lbl *.bin *.lst *.dis
 
 distclean: clean
 	$(RM) *.rom

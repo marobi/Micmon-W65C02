@@ -6,10 +6,10 @@
 
 	.setcpu "65C02"
 
-.include "../bios/bios.h"
+.include "bios.inc"
 
 	.segment "ZEROPAGE"
-	.org $00C0								; nicer listing
+	.org $00C0					; nicer listing
 
 ; IRQ hander vector
 irq_vecL:   .res 1
@@ -52,10 +52,10 @@ mnem_len:   .res 1
 save_sp:	.res 1
 
 	.segment "BSS"
-	.org $0200							; nicer listing
+	.org $0200				; nicer listing
 
 ; input buffer
-linebuf:    .res 40
+linebuf:    .res 64
 
 ; saved CPU image
 reg_pch:    .res 1
@@ -87,6 +87,8 @@ reset:
     sta irq_vecL
 	lda #>context_switch
     sta irq_vecH
+
+	jsr $E00E
 
     lda #<welcome_text		; say hello
     ldx #>welcome_text
@@ -532,7 +534,7 @@ cmd_error:
 ; MEMORY DUMP FORMATTERS
 ; ------------------------------------------------------------
 ; show 8 memory locs @R2
-dump_line:
+.proc dump_line
     lda #'>'						; sync with command table 
     jsr putchar
     jsr print_space
@@ -562,6 +564,7 @@ dump_ascii_loop:
     cpy #8
     bne dump_ascii_loop
     jmp newline
+.endproc
 
 ; ------------------------------------------------------------
 ; OUTPUT HELPERS
@@ -572,7 +575,7 @@ dump_ascii_loop:
 ; A = low byte, X = high byte of zero-terminated string.
 ; Uses T0 as the temporary string pointer.
 ; ------------------------------------------------------------
-print_str:
+.proc print_str
     phy
     sta T0L
     stx T0H
@@ -590,6 +593,7 @@ print_str_loop:
 print_str_done:
     ply
 	rts
+.endproc
 
 ; ------------------------------------------------------------
 ; PRINT_STATUS_BITS
@@ -603,7 +607,7 @@ print_str_done:
 ; Clobbers
 ;   A, X
 ; ------------------------------------------------------------
-print_status_bits:
+.proc print_status_bits
     sta tmp
 
     asl tmp              ; N -> C
@@ -624,34 +628,37 @@ ps_loop:
     dex
     bne ps_loop
     rts
+.endproc
 
 ; ------------------------------------------------------------
 ; PRINT_BIT_C
 ; Print '1' if Carry set, else '0'.
 ; ------------------------------------------------------------
-print_bit_c:
+.proc print_bit_c
     bcc ps_zero
     lda #'1'
     jmp putchar
 ps_zero:
     lda #'0'
     jmp putchar
+.endproc
 
 ; ------------------------------------------------------------
 ; PRINT ADDRESS IN T0 + one trailing space
 ; ------------------------------------------------------------
-print_address_T0:
+.proc print_address_T0
     lda T0H
     ldx T0L
     jsr print_hex16
     jmp print_space
+.endproc
 		
 ; ------------------------------------------------------------
 ; TOKENIZER
 ; Carry set   = token exists
 ; Carry clear = end of line
 ; ------------------------------------------------------------
-next_token:
+.proc next_token
     jsr skip_spaces
     ldy #0
     lda (lineptr),y
@@ -662,6 +669,7 @@ next_token:
 token_eol:
     clc
     rts
+.endproc
 
 ; ------------------------------------------------------------
 ; PARAMETER PARSER
@@ -673,7 +681,7 @@ token_eol:
 ;   ' ASCII    (byte only)
 ; Result is returned in T0, size in value_size.
 ; ------------------------------------------------------------
-parse_param:
+.proc parse_param
     jsr skip_spaces
     ldy #0
     lda (lineptr),y
@@ -708,8 +716,9 @@ parse_ascii:
 
 param_error:
     jmp cmd_error
+.endproc
 
-parse_byte:
+.proc parse_byte
     jsr parse_param
     lda value_size
     cmp #1
@@ -717,15 +726,17 @@ parse_byte:
     jmp cmd_error
 parse_byte_ok:
     rts
+.endproc
 
-parse_word:
+.proc parse_word
     jmp parse_param
+.endproc
 
 ; ------------------------------------------------------------
 ; ASCII PARSER
 ; Syntax: 'A
 ; ------------------------------------------------------------
-parse_ascii_char:
+.proc parse_ascii_char
     ldy #0
     lda (lineptr),y
     beq ascii_error
@@ -737,13 +748,14 @@ parse_ascii_char:
 
 ascii_error:
     jmp cmd_error
+.endproc
 
 ; ------------------------------------------------------------
 ; BINARY PARSER
 ; Syntax: %10101010
 ; Binary values are byte sized only.
 ; ------------------------------------------------------------
-parse_binary:
+.proc parse_binary
     stz T0L
     stz T0H
     stz tmp
@@ -787,12 +799,13 @@ bin_done:
 
 bin_error:
     jmp cmd_error
+.endproc
 
 ; ------------------------------------------------------------
 ; HEX PARSER
 ; 1-2 digits => byte, 3-4 digits => word.
 ; ------------------------------------------------------------
-parse_hex:
+.proc parse_hex
     stz T0L
     stz T0H
     stz tmp
@@ -840,6 +853,7 @@ hex_word:
 
 hex_error:
     jmp cmd_error
+.endproc
 
 ; ------------------------------------------------------------
 ; DECIMAL PARSER
@@ -847,7 +861,7 @@ hex_error:
 ; Uses repeated 16-bit add:
 ;   T0 = T0 * 10 + digit
 ; ------------------------------------------------------------
-parse_decimal:
+.proc parse_decimal
     stz T0L
     stz T0H
     stz value_size
@@ -903,6 +917,7 @@ dec_byte:
 
 dec_error:
     jmp cmd_error
+.endproc
 
 ; ------------------------------------------------------------
 ; HEX_DIGIT
@@ -956,14 +971,15 @@ hex_bad:
 ; ------------------------------------------------------------
 ; TEXT POINTER HELPERS
 ; ------------------------------------------------------------
-advance_lineptr:
+.proc advance_lineptr
     inc lineptr
     bne ptr_done
     inc lineptr+1
 ptr_done:
     rts
+.endproc
 
-skip_spaces:
+.proc skip_spaces
     ldy #0
     lda (lineptr),y
     cmp #' '
@@ -973,8 +989,9 @@ skip_spaces:
 		
 skip_done:
     rts
+.endproc
 
-toupper:
+.proc toupper
     cmp #'a'
     bcc upper_done
     cmp #'z'+1
@@ -982,74 +999,84 @@ toupper:
     and #%11011111
 upper_done:
     rts
+.endproc
 
 ; ------------------------------------------------------------
 ; 16-bit register / monitor pointer primitives
 ; ------------------------------------------------------------
-copy_T0_T1:
+.proc copy_T0_T1
     lda T0L
     sta T1L
     lda T0H
     sta T1H
     rts
+.endproc
 		
-copy_T0_R0:
+.proc copy_T0_R0
     lda T0L
     sta R0L
     lda T0H
     sta R0H
     rts
+.endproc
 
-copy_T0_R1:
+.proc copy_T0_R1
     lda T0L
     sta R1L
     lda T0H
     sta R1H
     rts
+.endproc
 
-copy_R0_R1:
+.proc copy_R0_R1
     lda R0L
     sta R1L
     lda R0H
     sta R1H
     rts
+.endproc
 
-copy_R0_R2:
+.proc copy_R0_R2
     lda R0L
     sta R2L
     lda R0H
     sta R2H
     rts
+.endproc
 
-copy_MEM_R0:
+.proc copy_MEM_R0
     lda MEML
     sta R0L
     lda MEMH
     sta R0H
     rts
+.endproc
 
-copy_R2_MEM:
+.proc copy_R2_MEM
     lda R2L
     sta MEML
     lda R2H
     sta MEMH
     rts
+.endproc
 
-inc_R0:
+.proc inc_R0
     inc R0L
     bne inc_r0_done
     inc R0H
 inc_r0_done:
     rts
+.endproc
 
-inc_R2:
+.proc inc_R2
     inc R2L
     bne inc_r2_done
     inc R2H
 inc_r2_done:
     rts
+.endproc
 
-add_R0_A:
+.proc add_R0_A
     clc
     adc R0L
     sta R0L
@@ -1062,8 +1089,9 @@ add_r0_no_wrap:
 add_r0_wrap:
     sec
     rts
+.endproc
 
-add_R1_A:
+.proc add_R1_A
     clc
     adc R1L
     sta R1L
@@ -1076,6 +1104,7 @@ add_r1_no_wrap:
 add_r1_wrap:
     sec
     rts
+.endproc
 
 ; ------------------------------------------------------------
 ; ADD_R2_A
@@ -1085,7 +1114,7 @@ add_r1_wrap:
 ;   C = 1 only if 16-bit wrap occurred ($FFFF -> $0000)
 ;   C = 0 otherwise
 ; ------------------------------------------------------------
-add_R2_A:
+.proc add_R2_A
     clc
     adc R2L
     sta R2L
@@ -1101,8 +1130,9 @@ add_r2_no_wrap:
 add_r2_wrap:
     sec
     rts
+.endproc
 
-add_T1_T0:
+.proc add_T1_T0
     clc
     lda T0L
     adc T1L
@@ -1111,8 +1141,9 @@ add_T1_T0:
     adc T1H
     sta T0H
     rts
+.endproc
 		
-cmp_R2_R1:
+.proc cmp_R2_R1
     lda R2H
     cmp R1H
     bne cmp_r2_r1_done
@@ -1120,9 +1151,10 @@ cmp_R2_R1:
     cmp R1L
 cmp_r2_r1_done:
     rts
+.endproc
 		
 ;------------------------------------------------
-print_hex8:
+.proc print_hex8
     pha
     lsr
     lsr
@@ -1138,11 +1170,13 @@ print_hex_digit:
     clc
     adc #'A'-10
     jmp putchar
+.endproc
 
-print_hex_num:
+.proc print_hex_num
     clc
     adc #'0'
     jmp putchar
+.endproc
 
 ; ------------------------------------------------------------
 ; PRINT_HEX16
@@ -1152,39 +1186,43 @@ print_hex_num:
 ;   A = high byte
 ;   X = low byte
 ; ------------------------------------------------------------
-print_hex16:
+.proc print_hex16
     phx
     jsr print_hex8
     plx
     txa
     jmp print_hex8
+.endproc
 		
-		
-print_ascii:
+.proc print_ascii
     cmp #$20
     bcc ascii_dot
     cmp #$7F
     bcs ascii_dot
     jmp putchar
+.endproc
 
-
-ascii_dot:
+.proc ascii_dot
     lda #'.'
     jmp putchar
+.endproc
 
-print_space:
+.proc print_space
     lda #' '
     jmp putchar
+.endproc
 
-newline:
+.proc newline
     lda #$0D
     jmp putchar
+.endproc
 
-print_prompt:
+.proc print_prompt
 		lda #<prompt_text
     ldx #>prompt_text
     jmp print_str
-		
+.endproc 
+
 ; ------------------------------------------------------------
 ; GETLINE
 ; Read a line from input into linebuf.
@@ -1195,7 +1233,7 @@ print_prompt:
 ; - line is zero terminated
 ; - max length = 127 characters
 ; ------------------------------------------------------------
-getline:
+.proc getline
     ldx #0
 
 getline_loop:
@@ -1216,20 +1254,26 @@ getline_done:
     lda #0
     sta linebuf,x
     rts
+.endproc
 		
-print_error:
+.proc print_error
 	lda #'?'
 	jsr putchar
 	jmp newline
+.endproc
 
 ; ------------------------------------------------------------
 ; I/O
 ; ------------------------------------------------------------
-getchar:
-	jmp BIOS_INCHAR
-		
-putchar:
+.proc getchar
+	jsr BIOS_INCHAR
+	beq getchar
+	rts
+.endproc
+
+.proc putchar
     jmp BIOS_OUTCHAR
+.endproc
 
 ; ------------------------------------------------------------
 ; CHECK_ABORT
@@ -1243,7 +1287,8 @@ putchar:
 ; this primitive instead of calling the BIOS everywhere.
 ; ------------------------------------------------------------
 check_abort:
-    jmp BIOS_STPKEY
+    clc
+    rts
 				
 ; command implementations
 .include "disasm.asm"
