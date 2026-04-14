@@ -176,8 +176,8 @@ Current file: micmon.asm
 000000r 2               BIOS_SYNC_PORT  =   $D004
 000000r 2               
 000000r 2               BIOS_BASE       =  	$F000
-000000r 2               BIOS_INCHAR     =   BIOS_BASE
-000000r 2               BIOS_OUTCHAR    =   BIOS_BASE+3
+000000r 2               BIOS_GETCHAR    =   BIOS_BASE
+000000r 2               BIOS_PUTCHAR    =   BIOS_BASE+3
 000000r 2               BIOS_INKEY      =   BIOS_BASE+6
 000000r 2               BIOS_STPKEY		=	BIOS_BASE+9
 000000r 2               BIOS_CONTEXT    =   BIOS_BASE+12
@@ -277,7 +277,7 @@ Current file: micmon.asm
 00B00D  1  A9 B0        	lda #>context_switch
 00B00F  1  85 C1            sta irq_vecH
 00B011  1               
-00B011  1  20 0E E0     	jsr $E00E
+00B011  1  20 29 E0     	jsr $E029				; temp clutch!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 00B014  1               
 00B014  1  A9 3B            lda #<welcome_text		; say hello
 00B016  1  A2 BF            ldx #>welcome_text
@@ -1455,13 +1455,13 @@ Current file: micmon.asm
 00B55A  1               ; I/O
 00B55A  1               ; ------------------------------------------------------------
 00B55A  1               .proc getchar
-00B55A  1  20 00 F0     	jsr BIOS_INCHAR
+00B55A  1  20 00 F0     	jsr BIOS_GETCHAR
 00B55D  1  F0 FB        	beq getchar
 00B55F  1  60           	rts
 00B560  1               .endproc
 00B560  1               
 00B560  1               .proc putchar
-00B560  1  4C 03 F0         jmp BIOS_OUTCHAR
+00B560  1  4C 03 F0         jmp BIOS_PUTCHAR
 00B563  1               .endproc
 00B563  1               
 00B563  1               ; ------------------------------------------------------------

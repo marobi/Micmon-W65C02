@@ -88,8 +88,8 @@ reset:
 	lda #>context_switch
     sta irq_vecH
 
-	jsr $E00E
-
+	jsr $E029				; temp clutch!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
     lda #<welcome_text		; say hello
     ldx #>welcome_text
     jsr print_str
@@ -1266,13 +1266,13 @@ getline_done:
 ; I/O
 ; ------------------------------------------------------------
 .proc getchar
-	jsr BIOS_INCHAR
+	jsr BIOS_GETCHAR
 	beq getchar
 	rts
 .endproc
 
 .proc putchar
-    jmp BIOS_OUTCHAR
+    jmp BIOS_PUTCHAR
 .endproc
 
 ; ------------------------------------------------------------
