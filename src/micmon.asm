@@ -48,9 +48,6 @@ asm_mode:   .res 1
 asm_opcode: .res 1
 mnem_len:   .res 1
 
-; context
-save_sp:	.res 1
-
 	.segment "BSS"
 	.org $0200				; nicer listing
 
@@ -83,12 +80,8 @@ reset:
 
     stz MEML
     stz MEMH
-	lda #<context_switch	; set interrupt vector
-    sta irq_vecL
-	lda #>context_switch
-    sta irq_vecH
-
-	jsr $E029				; temp clutch!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
+	jsr $E030				; temp fix
 	
     lda #<welcome_text		; say hello
     ldx #>welcome_text
@@ -98,52 +91,29 @@ reset:
 		
 ; ------------------------------------------------------------
 ; IRQ / BRK ENTRY
-; Shared entry for hardware IRQ and BRK.
-;
-; BRK enters the monitor.
-; IRQ dispatches through irq_vec
+; The common IRQ vector saves A/X/Y, then distinguishes IRQ
+; from BRK by testing bit 4 of the stacked status byte.
+; IRQ returns immediately. BRK enters the monitor.
 ; ------------------------------------------------------------
 	.export irq_entry
 irq_entry:
-    pha						; save rest of context
-    phx
-    phy
+    pha
+    txa
+    pha
+    tya
+    pha
 
     tsx
-	stx save_sp				; save current SP
-    lda $0104,x             ; stacked SR after PHA/PHX/PHY
+    lda $0104,x
     and #$10
-    bne brk_entry			; BREAK
+    bne brk_entry
 
-irq_dispatch:				; IRQ
-    jmp (irq_vecL)
-
-; ------------------------------------------------------------
-; expects the full context to be saved on stack
-; micmon must be shared between all contexts and loaded last
-;
-context_switch:				; for now default irq vector
-	lda BIOS_SYNC_PORT
-	beq context_switch		; wait for prev release, should not happen
-							; now 1
-	stz BIOS_SYNC_PORT		; arm
-							; now 0
-wait_ack:					; rp2350 will perform context switch
-	lda BIOS_SYNC_PORT
-	beq wait_ack			; wait for completion
-							; now 1
-	lda BIOS_STAT_PORT		; what to do?
-	cmp #$01				; when 1
-	beq irq_restore			; restore context
-	jmp ($FFFC)				; else exec reset
-							
-irq_restore:				; context switched
-	ldx save_sp
-	txs						; restore SP
-    ply						; restore context
+irq_restore:
+	jsr BIOS_ACK_IRQ
+    ply
     plx
     pla
-    rti						; and continue
+    rti
 
 	.export nmi_entry
 nmi_entry:
